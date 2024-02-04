@@ -1,0 +1,57 @@
+.match-history-container {
+  padding: 8px 8px;
+  margin-bottom: 8px;
+  background: var(--ion-background-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  .game-info {
+    width: 100%;
+    display: flex;
+    font-size: 12px;
+    .game-offer {
+      flex: 1;
+    }
+    .game-id-container {
+      text-align: right;
+    }
+    .label {
+      color: var(--ion-color-medium-tint);
+    }
+  }
+  .game-details {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    ion-label {
+      font-size: 12px;
+      margin: 0px 16px;
+    }
+
+    ion-icon {
+      &.paper {
+        fill: var(--color-blue);
+      }
+      &.rock {
+        fill: var(--color-brown);
+      }
+      &.sissor {
+        fill: var(--color-user);
+      }
+    }
+
+    .game-status {
+      margin: 0px;
+      &.won {
+        color: var(--color-user);
+      }
+      &.draw {
+        color: var(--ion-color-medium-shade);
+      }
+      &.lost {
+        color: var(--ion-color-danger-shade);
+      }
+    }
+  }
+}

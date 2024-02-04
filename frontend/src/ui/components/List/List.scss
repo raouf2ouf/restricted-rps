@@ -1,0 +1,13 @@
+.list-container {
+  width: 100%;
+  flex: 1;
+  padding: 0px 8px;
+  display: flex;
+  flex-direction: column;
+  & > div {
+    flex: 1;
+    padding: 8px;
+    min-height: 100px;
+    background: var(--ion-background-color-dark);
+  }
+}

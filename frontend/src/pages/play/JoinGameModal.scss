@@ -1,0 +1,116 @@
+.join-game-modal-page {
+  ion-title {
+    text-align: center;
+    color: var(--ion-color-light-shade);
+  }
+  .join-game-modal-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    .join-game-modal-loading {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      ion-backdrop {
+        background: var(--ion-background-color-dark);
+        opacity: 0.8;
+        z-index: 3;
+      }
+      ion-spinner {
+        z-index: 4;
+        position: absolute;
+        top: calc(50% - 32px);
+        left: calc(50% - 32px);
+        width: 64px;
+        height: 64px;
+      }
+    }
+    .title {
+      display: flex;
+      align-items: center;
+      color: var(--ion-color-light-shade);
+    }
+    .cost {
+      margin: 8px 0px;
+      height: 70px;
+      width: 100%;
+      background-color: var(--ion-background-color-light);
+      display: flex;
+      align-items: center;
+      padding: 0px 8px;
+      .what-you-get {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        padding: 0px 16px;
+        .cost-label {
+          margin-right: 16px;
+          color: var(--ion-color-light-shade);
+
+          width: 60px;
+          ion-label {
+            width: 50px;
+          }
+        }
+        & > div {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+      }
+      .what-you-pay {
+        display: flex;
+        align-items: center;
+        width: 100px;
+        text-align: center;
+        padding: 8px;
+        background-color: var(--ion-background-color-dark);
+        color: var(--ion-color-light-shade);
+        & > div:first-child {
+          flex: 1;
+        }
+        .unit {
+          font-size: 10px;
+        }
+      }
+
+      &.cash-cost {
+        .what-you-get {
+          ion-range {
+            --bar-height: 8px;
+            --ion-color-contrast: var(--ion-background-color-dark) !important;
+          }
+          ion-range::part(pin) {
+            &::before {
+              content: none;
+            }
+            transform: scale(1);
+            top: -20px;
+          }
+        }
+      }
+      &.transaction-cost {
+        .cost-label {
+          width: auto;
+          ion-label {
+            width: auto;
+          }
+        }
+      }
+    }
+    .total {
+      margin: 16px;
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      color: var(--ion-color-light-shade);
+      width: 100%;
+      ion-label {
+        text-align: center;
+        flex: 1;
+      }
+    }
+  }
+}

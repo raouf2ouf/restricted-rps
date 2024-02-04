@@ -1,0 +1,32 @@
+.small-star-container {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0px;
+  .small-star-background {
+    padding: 2px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    ion-icon {
+      margin: 4px 0px;
+      height: 36px;
+      width: 36px;
+      fill: var(--ion-background-color-dark);
+      &.locked {
+        opacity: 0.5;
+      }
+    }
+    .number {
+      color: var(--ion-color-warning);
+      font-size: 12px;
+    }
+
+    &.row {
+      flex-direction: row;
+      ion-icon {
+        margin: 0px 4px;
+      }
+    }
+  }
+}

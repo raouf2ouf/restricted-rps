@@ -1,0 +1,22 @@
+.small-players-container {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0px;
+  .small-players-background {
+    padding: 2px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    ion-icon {
+      margin: 4px 0px;
+      height: 36px;
+      width: 36px;
+      fill: var(--ion-color-medium-tint);
+    }
+    .number {
+      color: var(--ion-color-medium-tint);
+      font-size: 14px;
+    }
+  }
+}

@@ -1,0 +1,24 @@
+.cash-container {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0px;
+  padding: 0px 5px;
+  .cash-background {
+    background-color: var(--ion-background-color-dark);
+    // border: 1px solid var(--ion-color-secondary-shade);
+    padding: 8px 4px;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    ion-icon {
+      height: 36px;
+      width: 36px;
+    }
+    .amount {
+      color: var(--ion-color-primary);
+    }
+  }
+}

@@ -1,0 +1,49 @@
+ion-menu {
+  #left-side-menu-content {
+    --background: var(--ion-background-color);
+    .menu-container {
+      height: 100%;
+      padding: 64px 0px 8px 0px;
+      display: flex;
+      flex-direction: row;
+      .big-section {
+        height: 100%;
+        flex: 1;
+        border-right: 1px solid rgba(0, 0, 0, 0.13);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 12px 2px;
+        color: var(--ion-color-light-shade);
+        &.closed {
+          width: 0px;
+          overflow: hidden;
+          padding: 0px;
+          border-width: 0px;
+        }
+        .section {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-bottom: 16px;
+          & > ion-label {
+            display: flex;
+            align-items: center;
+          }
+          &.games {
+            flex: 1;
+          }
+        }
+        .wallet {
+          padding: 8px 0px 16px 0px;
+          color: var(--ion-color-primary);
+        }
+      }
+      .small-section {
+        width: 60px;
+        min-width: 60px;
+      }
+    }
+  }
+}

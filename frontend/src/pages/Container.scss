@@ -1,0 +1,27 @@
+ion-split-pane {
+  --closed-menu-width: 60px;
+  --open-menu-width: 370px;
+  --menu-width: var(--open-menu-width);
+  --side-width: var(--menu-width);
+  --side-min-width: none;
+  --side-max-width: none;
+  &.small {
+    --menu-width: var(--closed-menu-width);
+  }
+  &.big {
+    --menu-width: var(--open-menu-width);
+  }
+  ion-menu {
+    transition: width 0.3s ease;
+  }
+}
+
+div.ion-page {
+  ion-content {
+    --background: var(--ion-toolbar-background);
+  }
+}
+
+ion-tabs {
+  --ion-tab-bar-background: var(--ion-background-color);
+}

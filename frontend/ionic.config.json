@@ -1,0 +1,7 @@
+{
+  "name": "ethpoir",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}

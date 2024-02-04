@@ -1,0 +1,27 @@
+.star-selector-container {
+  display: flex;
+  justify-content: center;
+  .star-selector-background {
+    padding: 2px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    ion-icon {
+      margin: 0px 4px;
+      height: 36px;
+      width: 36px;
+      fill: var(--ion-background-color-dark);
+      &:hover {
+        cursor: pointer;
+        fill: var(--ion-color-warning-shade);
+        opacity: 0.5;
+      }
+      &.above-max:hover {
+        cursor: default;
+        fill: var(--ion-color-danger-shade);
+        opacity: 0.5;
+      }
+    }
+  }
+}

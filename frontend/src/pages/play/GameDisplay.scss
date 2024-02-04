@@ -1,0 +1,23 @@
+.game {
+  margin: 8px 0px;
+  width: 100%;
+  background-color: var(--ion-background-color);
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid var(--ion-background-color-light);
+  &.isplayer {
+    border-color: var(--ion-color-warning-shade);
+  }
+  .column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-right: 8px;
+    color: var(--ion-color-primary);
+    .label {
+      color: var(--ion-color-light-shade);
+    }
+  }
+}

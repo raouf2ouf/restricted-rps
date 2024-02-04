@@ -1,0 +1,13 @@
+.tooltip-container {
+    ion-button {
+        --padding-start: 2px;
+        --padding-end: 2px;
+        opacity: 0.5;
+    }
+}
+.tooltip-content {
+    ion-label {
+        color: var(--ion-color-light-shade);
+        font-size: 13px;
+    }
+}

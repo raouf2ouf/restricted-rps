@@ -1,0 +1,56 @@
+.ratio {
+  width: 100%;
+  padding: 8px 8px;
+  .top-progress-bar {
+    display: flex;
+    font-size: 10px;
+    padding: 0px 2px;
+    .nbr-won {
+      flex: 1;
+      color: var(--color-user);
+    }
+    .nbr-draw {
+      color: var(--ion-color-medium-shade);
+    }
+    .nbr-lost {
+      flex: 1;
+      text-align: right;
+      color: var(--ion-color-danger-shade);
+    }
+  }
+  .progress-bar-container {
+    width: 100%;
+    height: 5px;
+    display: flex;
+    background-color: var(--ion-background-color-dark);
+    .won {
+      height: 100%;
+      background-color: var(--color-user);
+    }
+    .draw {
+      height: 100%;
+      background-color: var(--ion-color-medium-shade);
+    }
+    .lost {
+      height: 100%;
+      background-color: var(--ion-color-danger-shade);
+    }
+  }
+  .bottom-progress-bar {
+    display: flex;
+    font-size: 10px;
+    padding: 0px 2px;
+    .nbr-won {
+      flex: 1;
+      color: var(--color-user);
+    }
+    .nbr-draw {
+      color: var(--ion-color-medium-shade);
+    }
+    .nbr-lost {
+      flex: 1;
+      text-align: right;
+      color: var(--ion-color-danger-shade);
+    }
+  }
+}

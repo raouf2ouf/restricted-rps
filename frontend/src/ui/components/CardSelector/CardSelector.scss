@@ -1,0 +1,45 @@
+.card-selector-container {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0px;
+  & > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 60px;
+    margin: 0px 8px;
+
+    opacity: 0.8;
+
+    &:hover {
+      cursor: pointer;
+      background-color: var(--ion-background-color-dark);
+    }
+
+    &.selected {
+      opacity: 1;
+      background-color: var(--ion-background-color-dark);
+    }
+
+    &.rock {
+      --small-card-color: var(--color-brown);
+    }
+    &.paper {
+      --small-card-color: var(--color-blue);
+    }
+    &.scissors {
+      --small-card-color: var(--color-user);
+    }
+    ion-icon {
+      fill: var(--small-card-color);
+      width: 34px;
+      height: 34px;
+    }
+    .number {
+      color: var(--small-card-color);
+      font-size: 14px;
+    }
+  }
+}

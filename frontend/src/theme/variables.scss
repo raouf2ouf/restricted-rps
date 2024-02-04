@@ -1,0 +1,168 @@
+/* Ionic Variables and Theming. For more info, please see:
+http://ionicframework.com/docs/theming/ */
+
+/** Ionic CSS Variables **/
+:root {
+  --color-violet: #9488f0;
+  --color-green: #6fdcba;
+  --color-blue: #3ca1ed;
+  --color-red: #f33f5b;
+  --color-orange: #f98654;
+  --color-yellow: #f6d083;
+  --color-brown: #bc768b;
+
+  --color-grayed: rgba(128, 130, 137, 0.5);
+  --color-user: #12b886;
+
+  --ion-background-color: #112240;
+  --ion-background-color-light: #112240;
+  --ion-toolbar-background: #091424;
+  --ion-background-color-dark: rgb(9, 20, 36);
+
+  --ion-font-family: "Titillium Web", sans-serif;
+
+  --ion-color-primary: var(--metis-color-violet);
+  --ion-color-primary-rgb: 148, 136, 240;
+
+  /** primary **/
+  --ion-color-primary: #0bdbfbdd;
+  --ion-color-primary-rgb: 11, 219, 251;
+  --ion-color-primary-contrast: #000000;
+  --ion-color-primary-contrast-rgb: 0, 0, 0;
+  --ion-color-primary-shade: #0ac1dd;
+  --ion-color-primary-tint: #23dffb;
+
+  /** secondary **/
+  --ion-color-secondary: #3dc2ff;
+  --ion-color-secondary-rgb: 61, 194, 255;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #36abe0;
+  --ion-color-secondary-tint: #50c8ff;
+
+  /** tertiary **/
+  --ion-color-tertiary: #5260ff;
+  --ion-color-tertiary-rgb: 82, 96, 255;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #4854e0;
+  --ion-color-tertiary-tint: #6370ff;
+
+  /** success **/
+  --ion-color-success: #2dd36f;
+  --ion-color-success-rgb: 45, 211, 111;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #28ba62;
+  --ion-color-success-tint: #42d77d;
+
+  /** warning **/
+  --ion-color-warning: #ffc409;
+  --ion-color-warning-rgb: 255, 196, 9;
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-contrast-rgb: 0, 0, 0;
+  --ion-color-warning-shade: #e0ac08;
+  --ion-color-warning-tint: #ffca22;
+
+  /** danger **/
+  --ion-color-danger: #eb445a;
+  --ion-color-danger-rgb: 235, 68, 90;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #cf3c4f;
+  --ion-color-danger-tint: #ed576b;
+
+  /** dark **/
+  --ion-color-dark: #222428;
+  --ion-color-dark-rgb: 34, 36, 40;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: #1e2023;
+  --ion-color-dark-tint: #383a3e;
+
+  /** medium **/
+  --ion-color-medium: #92949c;
+  --ion-color-medium-rgb: 146, 148, 156;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #808289;
+  --ion-color-medium-tint: #9d9fa6;
+
+  /** light **/
+  --ion-color-light: #f4f5f8;
+  --ion-color-light-rgb: 244, 245, 248;
+  --ion-color-light-contrast: #000000;
+  --ion-color-light-contrast-rgb: 0, 0, 0;
+  --ion-color-light-shade: #d7d8da;
+  --ion-color-light-tint: #f5f6f9;
+}
+
+//////////////////////////////////////////////////
+// BREAKPOINTS
+//////////////////////////////////////////////////
+$screen-breakpoints: (
+  xs: 360px,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+);
+
+@each $size, $size-value in $screen-breakpoints {
+  .hide-#{$size} {
+    @media (max-width: $size-value) {
+      display: none !important;
+    }
+  }
+}
+
+.hide-max {
+  @media (min-width: 1200px) {
+    display: none !important;
+  }
+}
+
+ion-toast {
+  --background: var(--ion-background-color);
+  text-align: center;
+}
+
+ion-alert {
+  .alert-head {
+    --ion-text-color: var(--ion-color-primary);
+    font-weight: bold;
+  }
+  .alert-message {
+    color: var(--ion-color-light-shade) !important;
+  }
+  .alert-button-group {
+    display: flex;
+    flex-direction: row !important;
+  }
+
+  .danger {
+    color: var(--ion-color-danger) !important;
+  }
+  input {
+    --ion-text-color: var(--ion-color-light-shade);
+  }
+  button.alert-button-role-cancel {
+    color: var(--ion-color-medium-tint) !important;
+  }
+}
+
+.select-alert {
+  --width: 400px;
+  .select-interface-option {
+    .alert-radio-label {
+      color: var(--ion-color-medium-tint) !important;
+      font-size: 14px;
+    }
+  }
+}
+
+.rectangle-button {
+  --border-radius: 0px;
+  border: 1px solid var(--ion-color-primary);
+  font-size: 12px;
+}

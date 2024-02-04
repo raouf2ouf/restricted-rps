@@ -1,0 +1,14 @@
+.game-selector-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  ion-label {
+    color: var(--ion-color-light-shade);
+    margin-right: 16px;
+  }
+  ion-select {
+    width: 100px;
+    color: var(--ion-color-primary);
+  }
+}
