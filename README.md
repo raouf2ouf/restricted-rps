@@ -58,3 +58,7 @@ The game is composed of two Smart Contracts, a Factory smartcontract that handle
 - Bkockchain: Lightlink Pegasus Testnet
 
 ## UI Example
+
+![ui1](./screenshots/ethpoir-ui1.png)
+![ui2](./screenshots/ethpoir-ui2.png)
+![ui3](./screenshots/ethpoir-ui3.png)
