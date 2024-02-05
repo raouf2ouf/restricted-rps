@@ -20,8 +20,7 @@
 [Rock, Paper, Scissors [RPS]]("https://en.wikipedia.org/wiki/Rock_paper_scissors) is one the most iconic and played games all over the world
 (there is even an [RPS World Championship](https://wrpsa.com/rock-paper-scissors-tournaments/). However, there was always a debate on wether it is a game of <em>chance</em> or a game of <em>skill</em> ?
 
-<em>Restricted Random RPS</em> [RRPS] is a variant that adds complexity and amplifies the role of chance and skill. It is inspired by the famous [Resctricted RPS](https://kaiji.fandom.com/wiki/Restricted_Rock_Paper_Scissors) from the manga [Kaiji] (https://kaiji.fandom.com/wiki/Kaiji_Wiki).
-The name Ethpoir is a bad joke mixing [Espoir](https://kaiji.fandom.com/wiki/Espoir) (the name of the ship where the game was played) and ETH (it is also how my little niece pronounces Espoir).
+<em>Restricted Random RPS</em> [RRPS] is a variant that adds complexity and amplifies the role of chance and skill. It is inspired by the famous [Resctricted RPS](https://kaiji.fandom.com/wiki/Restricted_Rock_Paper_Scissors) from the manga [Kaiji](https://kaiji.fandom.com/wiki/Kaiji_Wiki). The name Ethpoir is a bad joke mixing [Espoir](https://kaiji.fandom.com/wiki/Espoir) (the name of the ship where the game was played) and ETH (it is also how my little niece pronounces Espoir).
 
 ## How to play
 
@@ -41,4 +40,21 @@ You need some <strong>Lightlink</strong> test ETH to play. A game starts when a 
 - You <em>lose a game </em> when you have <em>less than 3 stars</em> at the end of the game (you will still recieve part of your collateral for each star you have).
 - You <em>draw a game</em> when you have more than 3 stars and at <em>least 1 card</em>. You will only recieve the collateral you used.
 
-## Architecture and how it works
+## Architecture and How it Works
+
+In order for the game to be fair, it is designed without any direct communication between the front-end and the back-end (everything goes through the blockchain).
+The challenges of this game arise from the fact that two types of informations need to be hidden when a game is played: the **deck**, and each **player initial hand**. In order to guarantee that no player or game master cheated, these two informations need to be verifiable after each game as to avoid allowing cheaters to take collateral that is not rightfully theirs.
+
+1. **The fairness of the deck:** at the begining of the game, a game master (our backend) provides a hash of an initial shuffled deck. The game requests a random number from API3 QRNG and asks the game master to reshuffle the deck using this number. In order to close a game, the game master will have to provide the secret for the initial deck hash and the smartcontrat will verifiy that after reshuffling the deck with the QRNG every player has indeed recieved the right amount of cards.
+2. **The fairness of the Player initial hand:** when a player joins a game, he sends a public key that is used by the game master to encrypt the player's initial hand. The front-end fetches the hash from the blockchain and automatically decrypts it for the player.
+
+The game is composed of two Smart Contracts, a Factory smartcontract that handles game creation and verification, and a Game smartcontract. For every game, the factory smartcontract deploys a new Game smartcontract up to 50, afterwhich, the deployed games are reused if they are finished.
+
+## Technical Stack
+
+- Contracts: Solidity & Foundry
+- Backend: Nestjs and Postgresql, Ethers
+- Frontend: Ionic React, Wagmi
+- Bkockchain: Lightlink Pegasus Testnet
+
+## UI Example
