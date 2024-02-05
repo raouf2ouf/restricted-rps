@@ -16,6 +16,7 @@ import {
   fetchPlayersStateForGame,
   setInitialPlayerHand,
 } from "$store/playersState.slice";
+import { fetchMatchesForGame } from "$store/matches.slice";
 
 export function useOpenGames(): string[] | undefined {
   const { factoryAddress } = useContractsContext();
@@ -87,6 +88,11 @@ export function useGame(gameAddress: "0x${string}"): GameInfo | undefined {
             break;
           case "MatchCancelled":
             dispatch(fetchPlayersStateForGame({ config, gameAddress }));
+            break;
+          case "MatchAnswered":
+          case "MatchCreated":
+          case "MatchClosed":
+            dispatch(fetchMatchesForGame({ config, gameAddress }));
             break;
         }
       }

@@ -34,7 +34,7 @@ const GameState: React.FC<Props> = ({}) => {
       nbrSt += state.nbrStars;
       nbrR += state.nbrRockUsed;
       nbrP += state.nbrPaperUsed;
-      nbrS += state.nbrPaperUsed;
+      nbrS += state.nbrScissorsUsed;
     }
     setNbrRocks(nbrR);
     setNbrPapers(nbrP);

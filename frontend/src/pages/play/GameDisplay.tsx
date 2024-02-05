@@ -6,6 +6,7 @@ import JoinGameModal from "./JoinGameModal";
 import { useAppSelector } from "$store/store";
 import { selectOpenGameById } from "$store/openGames.slice";
 import { useCurrentGameContext } from "$contexts/CurrentGameContext";
+import Timer from "$ui/components/Timer/Timer";
 
 type Props = {
   id: number;
@@ -51,7 +52,9 @@ const GameDisplay: React.FC<Props> = ({ id, isPlayer, playerId }) => {
           </div>
           <div className="game-duration column">
             <IonLabel className="label">Duration</IonLabel>
-            <IonLabel>{info.duration}</IonLabel>
+            <IonLabel>
+              <Timer />
+            </IonLabel>
           </div>
           {isPlayer ? (
             <IonButton

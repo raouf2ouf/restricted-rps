@@ -1,0 +1,20 @@
+.card.column {
+  .small-card-container {
+    margin: 0px;
+    height: 26px;
+    & > div {
+      height: 26px;
+    }
+    ion-icon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+.column {
+  .result {
+    text-transform: uppercase;
+    font-size: 14px;
+  }
+}

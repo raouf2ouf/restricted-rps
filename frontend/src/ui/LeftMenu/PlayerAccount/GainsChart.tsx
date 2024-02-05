@@ -7,7 +7,23 @@ import "./GainsChart.scss";
 import Chart from "$ui/components/Chart/Chart";
 interface Props {}
 
-const DATA: any[] = [];
+function getRandom(min: number, max: number): number {
+  return Math.random() * (max - min) + min;
+}
+
+function generateData(nbr: number): number[][] {
+  const data: number[][] = [];
+  let previous: number = 0;
+  for (let i = 0; i < nbr; i++) {
+    previous += getRandom(-0.08, +0.09);
+    if (previous > 1) {
+      previous = 0.94;
+    }
+    data.push([i, previous]);
+  }
+  return data;
+}
+const DATA = generateData(11);
 
 const GainsChart: React.FC<Props> = ({}) => {
   const data = DATA;

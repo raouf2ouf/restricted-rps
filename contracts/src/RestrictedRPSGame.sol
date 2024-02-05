@@ -137,7 +137,7 @@ contract RestrictedRPSGame {
     event MatchCreated(uint256 indexed matchId, address indexed player);
     event MatchAnswered(uint256 indexed matchId, address indexed player);
     event MatchCancelled(uint256 indexed matchId, address indexed player);
-    event MatchClosed(uint256 indexed matchId);
+    event MatchClosed(uint256 indexed matchId, uint8 indexed state);
 
     event PlayerCheated(address indexed);
     event DealerCheated(address indexed);
@@ -563,29 +563,35 @@ contract RestrictedRPSGame {
         _playCard(m.player1, player1Card);
         _playCard(m.player2, player2Card);
 
+        MatchState mstate = MatchState.UNDECIDED;
         if (uint8(player1Card) > 2) {
             // player 1 played invalid card. Player 2 wins
             _markAsPlayer2Win(_matchId, m.player1, m.player2);
+            mstate = MatchState.WIN2;
         }
         if (uint8(player2Card) > 2) {
             // player 2 played invalid card. Player 1 wins
             _markAsPlayer1Win(_matchId, m.player1, m.player2);
+            mstate = MatchState.WIN1;
         }
 
         if (player1Card == player2Card) {
             // Draw
             _markAsDraw(_matchId, m.player1, m.player2);
+            mstate = MatchState.DRAW;
         } else if (
             (player1Card == Card.ROCK && player2Card == Card.SCISSORS) ||
             (player1Card == Card.PAPER && player2Card == Card.ROCK) ||
             (player1Card == Card.SCISSORS && player2Card == Card.PAPER)
         ) {
             _markAsPlayer1Win(_matchId, m.player1, m.player2);
+            mstate = MatchState.WIN1;
         } else {
             _markAsPlayer2Win(_matchId, m.player1, m.player2);
+            mstate = MatchState.WIN2;
         }
 
-        emit MatchClosed(_matchId);
+        emit MatchClosed(_matchId, uint8(mstate));
     }
 
     function verifyDealerHonesty(

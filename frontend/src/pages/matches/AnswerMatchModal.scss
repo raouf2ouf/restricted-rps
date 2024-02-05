@@ -1,14 +1,14 @@
-.offer-match-modal-page {
+.answer-match-modal-page {
   ion-title {
     text-align: center;
     color: var(--ion-color-light-shade);
   }
-  .offer-match-modal-container {
+  .answer-match-modal-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
-    .offer-match-modal-loading {
+    .answer-match-modal-loading {
       width: 100%;
       height: 100%;
       position: absolute;

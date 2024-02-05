@@ -12,13 +12,16 @@ import Tooltip from "$ui/components/Tooltip/Tooltip";
 import { useCurrentGameContext } from "$contexts/CurrentGameContext";
 import { useAppSelector } from "$store/store";
 import { selectMatchesForGame } from "$store/matches.slice";
-import MatchDisplay from "./MatchDisplay";
 import OfferMatchModal from "./OfferMatchModal";
 import { Match, MatchState } from "$models/Match";
+import OpenMatchDisplay from "./OpenMatchDisplay";
+import AnsweredMatchDisplay from "./AnsweredMatchDisplay";
 
 const MatchesPage: React.FC = () => {
   const [playerOpenMatches, setPlayerOpenMatches] = useState<Match[]>([]);
   const [otherOpenMatches, setOtherOpenMatches] = useState<Match[]>([]);
+  const [toCloseMatches, settoCloseMatches] = useState<Match[]>([]);
+  const [otherMatches, setOtherMatches] = useState<Match[]>([]);
   const { currentGameAddress, currentPlayerId } = useCurrentGameContext();
 
   const [present, dismiss] = useIonModal(OfferMatchModal, {
@@ -30,6 +33,31 @@ const MatchesPage: React.FC = () => {
   );
 
   useEffect(() => {
+    const playerOpen: Match[] = [];
+    const otherOpen: Match[] = [];
+    const toClose: Match[] = [];
+    const other: Match[] = [];
+    for (const m of matches) {
+      if (m.player1 == currentPlayerId) {
+        if (m.result == MatchState.UNDECIDED) {
+          playerOpen.push(m);
+        } else if (m.result == MatchState.ANSWERED) {
+          toClose.push(m);
+        } else if (m.result != MatchState.CANCELLED) {
+          other.push(m);
+        }
+      } else if (m.result == MatchState.UNDECIDED) {
+        otherOpen.push(m);
+      } else {
+        if (m.result != MatchState.CANCELLED) {
+          other.push(m);
+        }
+      }
+    }
+    setPlayerOpenMatches(playerOpen);
+    setOtherOpenMatches(otherOpen);
+    settoCloseMatches(toClose);
+    setOtherMatches(other);
     setPlayerOpenMatches(
       matches.filter((m) => {
         console.log("matchplayer", m.player1);
@@ -64,7 +92,7 @@ const MatchesPage: React.FC = () => {
                   <Tooltip text=""></Tooltip>
                 </IonLabel>
                 {playerOpenMatches.map((m) => (
-                  <MatchDisplay id={m.id} key={m.id} isPlayer />
+                  <OpenMatchDisplay id={m.id} key={m.id} isPlayer />
                 ))}
                 <IonButton
                   className="rectangle-button"
@@ -74,13 +102,22 @@ const MatchesPage: React.FC = () => {
                   <IonLabel>Offer a Match</IonLabel>
                 </IonButton>
               </div>
+              <div className="section to-close-matches">
+                <IonLabel>
+                  <div>Your Answered Matches</div>
+                  <Tooltip text=""></Tooltip>
+                </IonLabel>
+                {toCloseMatches.map((m) => (
+                  <AnsweredMatchDisplay id={m.id} key={m.id} isPlayer />
+                ))}
+              </div>
               <div className="section other-player-matches">
                 <IonLabel>
                   <div>Other Player's Open Matches</div>
                   <Tooltip text=""></Tooltip>
                 </IonLabel>
                 {otherOpenMatches.map((m) => (
-                  <MatchDisplay id={m.id} key={m.id} />
+                  <OpenMatchDisplay id={m.id} key={m.id} />
                 ))}
               </div>
               <div className="section played-matches">
@@ -88,6 +125,9 @@ const MatchesPage: React.FC = () => {
                   <div>Played Matches</div>
                   <Tooltip text=""></Tooltip>
                 </IonLabel>
+                {otherMatches.map((m) => (
+                  <AnsweredMatchDisplay id={m.id} key={m.id} />
+                ))}
               </div>
             </>
           )}

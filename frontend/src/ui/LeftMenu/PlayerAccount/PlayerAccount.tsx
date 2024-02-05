@@ -16,7 +16,7 @@ const PlayerAccount: React.FC<Props> = ({}) => {
         <Tooltip text=""></Tooltip>
       </IonLabel>
       <Wallet />
-      <WinLossRatio won={0} draw={0} lost={0} />
+      <WinLossRatio won={4} draw={2} lost={7} />
       <GainsChart />
     </div>
   );

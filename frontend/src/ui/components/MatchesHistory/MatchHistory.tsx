@@ -1,29 +1,62 @@
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 
 import "./MatchHistory.scss";
 import { IonIcon, IonLabel } from "@ionic/react";
+import { Match, MatchState } from "$models/Match";
+import SmallCard from "../SmallCard/SmallCard";
+import SmallStars from "../SmallStars/SmallStars";
 
-type Props = {};
+type Props = {
+  playerId: number;
+  match: Match;
+};
 
-const MatcheHistory: React.FC<Props> = ({}) => {
+const MatcheHistory: React.FC<Props> = ({ match, playerId }) => {
+  const isPlayer1 = match.player1 == playerId;
+  function shortenAddress(addr: any) {
+    return addr.slice(0, 7) + "..." + addr.slice(-5);
+  }
   return (
     <div className="match-history-container">
       <div className="game-info">
         <div className="game-offer">
-          <IonLabel className="label">Against: </IonLabel>
-          <IonLabel>0x9b5...d18</IonLabel>
+          <IonLabel className="label">Game: </IonLabel>
+          <IonLabel>{shortenAddress(match.gameAddress)}</IonLabel>
         </div>
         <div className="game-id-container">
-          <IonLabel className="label">Game Id: </IonLabel>
-          <IonLabel className="game-id">1</IonLabel>
+          <IonLabel className="label">Match Id: </IonLabel>
+          <IonLabel className="game-id">{match.matchId}</IonLabel>
         </div>
       </div>
       <div className="game-details">
-        <IonIcon className="paper" icon="./assets/paper.svg" />
-        <IonLabel>X</IonLabel>
-        <IonIcon className="rock" icon="./assets/rock.svg" />
-        <IonLabel>=</IonLabel>
-        <IonLabel className="game-status won">Won</IonLabel>
+        <div className="cards">
+          <SmallCard simple card={match.player1Card} />
+          <IonLabel>X</IonLabel>
+          <SmallCard simple card={match.player2Card} />
+          <IonLabel>=</IonLabel>
+        </div>
+        <div className="game-status">
+          {isPlayer1 && match.result == MatchState.WIN1 && (
+            <IonLabel className="won">You Won</IonLabel>
+          )}
+          {isPlayer1 && match.result == MatchState.WIN2 && (
+            <IonLabel className="lost">You Lost</IonLabel>
+          )}
+          {!isPlayer1 && match.result == MatchState.WIN2 && (
+            <IonLabel className="won">You Won</IonLabel>
+          )}
+          {!isPlayer1 && match.result == MatchState.WIN1 && (
+            <IonLabel className="lost">You Lost</IonLabel>
+          )}
+          {isPlayer1 && match.result == MatchState.DRAW && (
+            <IonLabel className="draw">Draw</IonLabel>
+          )}
+          <SmallStars
+            direction="row"
+            nbr={match.player1Bet}
+            expanded={match.player1Bet}
+          />
+        </div>
       </div>
     </div>
   );

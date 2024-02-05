@@ -23,6 +23,7 @@ const getMatchesForGame = async (
     abi: GAME_CONTRACT.abi,
     functionName: "getMatches",
   })) as any[];
+  console.log(data);
   for (let i = 0; i < data.length; i++) {
     const d = data[i] as any;
     const m: Match = {
@@ -58,7 +59,11 @@ export const fetchMatchesForGame = createAsyncThunk(
       .playerAddress;
     const matches = await getMatchesForGame(config, gameAddress);
     for (const match of matches) {
-      if (playerAddress && match.result == MatchState.UNDECIDED) {
+      if (
+        playerAddress &&
+        (match.result == MatchState.UNDECIDED ||
+          match.result == MatchState.ANSWERED)
+      ) {
         const data = await getMatchData(
           playerAddress,
           gameAddress,
@@ -73,6 +78,7 @@ export const fetchMatchesForGame = createAsyncThunk(
     await thunkAPI.dispatch(
       fetchPlayersStateForGame({ config, gameAddress: gameAddress })
     );
+    console.log("matches", matches);
     return matches;
   }
 );
@@ -102,7 +108,9 @@ export const cancelMatch = createAsyncThunk(
 );
 
 // Adapter
-const matchesAdapter = createEntityAdapter<Match>({});
+const matchesAdapter = createEntityAdapter<Match>({
+  sortComparer: (a: Match, b: Match) => b.matchId - a.matchId,
+});
 
 // Selectors
 export const { selectAll: selectAllMatches, selectById: selectMatchById } =

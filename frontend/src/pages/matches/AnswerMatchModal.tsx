@@ -33,45 +33,27 @@ import Tooltip from "$ui/components/Tooltip/Tooltip";
 
 import * as GAME_CONTRACT from "$contracts/RestrictedRPSGame.json";
 
-import "./OfferMatchModal.scss";
-import { useContractsContext } from "$contexts/ContractsContext";
-import { wTe } from "$contracts/index";
-import { GameInfo } from "$models/Game";
-import {
-  generateKeyPair,
-  lockOrUnlockCard,
-  setMatchData,
-  setPrivateKeyForGame,
-} from "src/api/local";
+import "./AnswerMatchModal.scss";
 import { useCurrentGameContext } from "$contexts/CurrentGameContext";
 import { Match } from "$models/Match";
 import { Card } from "$models/Card";
 import { useAppDispatch, useAppSelector } from "$store/store";
 import { selectPlayerStateById } from "$store/playersState.slice";
 import { buildPlayerStateId } from "$models/PlayerState";
-import StarSelector from "$ui/components/StarSelector/StarSelector";
 import CardSelector from "$ui/components/CardSelector/CardSelector";
-import { randomBytes } from "crypto";
-import { concat, encodePacked, keccak256 } from "viem";
-import { waitForTransactionReceipt } from "@wagmi/core";
 import { fetchMatchesForGame } from "$store/matches.slice";
+import { lockOrUnlockCard } from "src/api/local";
 
 type Props = {
   onDismiss: () => void;
+  match: Match;
 };
 
-function computeHash(secret: string, card: Card): string {
-  return keccak256(encodePacked(["uint8", "string"], [card, secret]));
-}
-const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
+const AnswerMatchModal: React.FC<Props> = ({ onDismiss, match }) => {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(true);
-  const [nbrStars, setNbrStars] = useState<number>(0);
-  const [nbrStarsBet, setNbrStarsBet] = useState<number>(0);
   const [card, setCard] = useState<Card>();
-  const [hash, setHash] = useState<string>();
-  const [secret, setSecret] = useState<string>(randomBytes(7).toString("hex"));
 
   const { writeContract } = useWriteContract();
   const config = useConfig();
@@ -86,30 +68,9 @@ const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
   );
 
   function handleSetCard(card: Card) {
-    if (nbrStars > 0 && secret.length > 0 && card !== undefined)
-      setDisabled(false);
+    if (card !== undefined) setDisabled(false);
     else setDisabled(true);
     setCard(card);
-    if (secret) {
-      setHash(computeHash(secret, card));
-    }
-  }
-
-  function handleSetSecret(secret: string) {
-    if (nbrStars > 0 && secret.length > 0 && card !== undefined)
-      setDisabled(false);
-    else setDisabled(true);
-    setSecret(secret);
-    if (card) {
-      setHash(computeHash(secret, card));
-    }
-  }
-
-  function handleSetNbrStars(nbrStars: number) {
-    if (nbrStars > 0 && secret.length > 0 && card !== undefined)
-      setDisabled(false);
-    else setDisabled(true);
-    setNbrStars(nbrStars);
   }
 
   function handleSubmit() {
@@ -118,29 +79,14 @@ const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
       {
         address: currentGameAddress as "0x${string}",
         abi: GAME_CONTRACT.abi,
-        functionName: "offerMatch",
-        args: [hash, nbrStars, nbrStarsBet],
+        functionName: "answerMatch",
+        args: [match.matchId, card],
       },
       {
-        onSettled: async (hash) => {
-          const receipt = await waitForTransactionReceipt(config, {
-            hash: hash as "0x${string}",
-          });
-          console.log(receipt);
-          const matchId = Number(BigInt(receipt.logs[0].topics[1]!));
-          console.log("matchId", matchId);
-          await setMatchData(
-            address!,
-            currentGameAddress!,
-            matchId,
-            secret,
-            card!
-          );
+        onSuccess: async (data) => {
+          lockOrUnlockCard(address!, match.gameAddress, card!, -1);
           dispatch(
-            fetchMatchesForGame({
-              config,
-              gameAddress: currentGameAddress as "0x${string}",
-            })
+            fetchMatchesForGame({ config, gameAddress: match.gameAddress })
           );
           closeModal();
         },
@@ -157,7 +103,7 @@ const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
     onDismiss();
   }
   return (
-    <IonPage className="offer-match-modal-page">
+    <IonPage className="answer-match-modal-page">
       <IonHeader>
         <IonToolbar>
           <IonButtons slot="start">
@@ -166,7 +112,8 @@ const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
             </IonButton>
           </IonButtons>
           <IonTitle>
-            <span>Offer a Match </span>
+            <span>Answer Match</span>{" "}
+            <IonLabel color="primary">{match.matchId}</IonLabel>
           </IonTitle>
           <IonButtons slot="end">
             <IonButton
@@ -181,15 +128,15 @@ const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
-        <div className="offer-match-modal-container">
+        <div className="answer-match-modal-container">
           {loading && (
-            <div className="offer-match-modal-loading">
+            <div className="answer-match-modal-loading">
               <IonSpinner name="lines-sharp" color="primary"></IonSpinner>
               <IonBackdrop visible={true} tappable={false}></IonBackdrop>
             </div>
           )}
           <div className="title">
-            <IonLabel>Offer a Match</IonLabel>
+            <IonLabel>Answer Match</IonLabel>
             <Tooltip text="" />
           </div>
           <div className="item player1bet">
@@ -198,23 +145,7 @@ const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
               <Tooltip text="" />
             </div>
             <div className="item-data">
-              <StarSelector
-                max={
-                  playerState
-                    ? playerState.nbrStars - playerState.nbrStarsLocked
-                    : 0
-                }
-                onSelect={handleSetNbrStars}
-              />
-            </div>
-          </div>
-          <div className="item player2bet">
-            <div className="item-label">
-              <IonLabel>Opponent Min Bet</IonLabel>
-              <Tooltip text="" />
-            </div>
-            <div className="item-data">
-              <StarSelector max={5} onSelect={setNbrStarsBet} />
+              <SmallStars direction="row" nbr={match.player2Bet} expanded={5} />
             </div>
           </div>
           <div className="item card">
@@ -249,41 +180,7 @@ const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
               />
             </div>
           </div>
-          <div className="item secret">
-            <div className="item-label">
-              <IonLabel>Secret</IonLabel>
-              <Tooltip text="" />
-            </div>
-            <div className="item-data">
-              <IonInput
-                value={secret}
-                onIonChange={({ detail }) =>
-                  handleSetSecret(detail.value || "")
-                }
-                placeholder="Secret to construct Hash"
-              />
-            </div>
-          </div>
 
-          {/* <div className="cost transaction-cost">
-            <div className="what-you-get">
-              <div className="cost-label">
-                <IonLabel>Estimated Transaction Gas Cost</IonLabel>
-                <Tooltip text="" />
-              </div>
-            </div>
-            <div className="what-you-pay">
-              <div>{wTe(gasCost)}</div>
-              <div className="unit">{collateralUnit}</div>
-            </div>
-          </div>
-
-          <div className="total">
-            <IonLabel>Total</IonLabel>
-            <IonLabel color="primary">
-              ~{wTe(value + gasCost)} {collateralUnit}
-            </IonLabel>
-          </div> */}
           <IonButton
             fill="clear"
             className="rectangle-button"
@@ -299,4 +196,4 @@ const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
   );
 };
 
-export default memo(OfferGameModal);
+export default memo(AnswerMatchModal);

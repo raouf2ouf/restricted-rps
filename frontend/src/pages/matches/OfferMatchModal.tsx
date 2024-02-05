@@ -61,7 +61,8 @@ type Props = {
 };
 
 function computeHash(secret: string, card: Card): string {
-  return keccak256(encodePacked(["uint8", "string"], [card, secret]));
+  const encoder = new TextEncoder();
+  return keccak256(concat([new Uint8Array([card]), encoder.encode(secret)]));
 }
 const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
   const dispatch = useAppDispatch();
@@ -114,6 +115,7 @@ const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
 
   function handleSubmit() {
     setLoading(true);
+    console.log("card hash for:", card, secret, hash);
     writeContract(
       {
         address: currentGameAddress as "0x${string}",
@@ -126,7 +128,6 @@ const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
           const receipt = await waitForTransactionReceipt(config, {
             hash: hash as "0x${string}",
           });
-          console.log(receipt);
           const matchId = Number(BigInt(receipt.logs[0].topics[1]!));
           console.log("matchId", matchId);
           await setMatchData(

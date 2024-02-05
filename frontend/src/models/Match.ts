@@ -26,3 +26,18 @@ export interface Match {
 export function buildMatchId(gameAddress: string, matchId: number) {
   return `${gameAddress.toLowerCase()}-${matchId}`;
 }
+
+export function resultToText(result: MatchState) {
+  switch (result) {
+    case MatchState.UNDECIDED:
+      return "undecided";
+    case MatchState.ANSWERED:
+      return "answered";
+    case MatchState.DRAW:
+      return "draw";
+    case MatchState.WIN1:
+      return "win1";
+    case MatchState.WIN2:
+      return "win2";
+  }
+}

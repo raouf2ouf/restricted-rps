@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 
-import "./MatchDisplay.scss";
+import "./OpenMatchDisplay.scss";
 import { IonButton, IonLabel, useIonModal } from "@ionic/react";
 import { useAppDispatch, useAppSelector } from "$store/store";
 import { useCurrentGameContext } from "$contexts/CurrentGameContext";
@@ -15,19 +15,25 @@ import * as GAME_CONTRACT from "$contracts/RestrictedRPSGame.json";
 import { MatchState } from "$models/Match";
 import { cardToType } from "$models/Card";
 import { lockOrUnlockCard } from "src/api/local";
+import AnswerMatchModal from "./AnswerMatchModal";
 
 type Props = {
   id: string;
   isPlayer?: boolean;
 };
 
-const GameDisplay: React.FC<Props> = ({ id, isPlayer }) => {
+const OpenMatchDisplay: React.FC<Props> = ({ id, isPlayer }) => {
   const dispatch = useAppDispatch();
   const match = useAppSelector((state) => selectMatchById(state, id));
 
   const config = useConfig();
   const { writeContract } = useWriteContract();
   const { currentGameAddress } = useCurrentGameContext();
+
+  const [present, dismiss] = useIonModal(AnswerMatchModal, {
+    onDismiss: (data: string, role: string) => dismiss(data, role),
+    match,
+  });
 
   async function cancelGame() {
     writeContract(
@@ -49,7 +55,9 @@ const GameDisplay: React.FC<Props> = ({ id, isPlayer }) => {
     );
   }
 
-  function openModal() {}
+  function openModal() {
+    present();
+  }
 
   return (
     <>
@@ -63,7 +71,7 @@ const GameDisplay: React.FC<Props> = ({ id, isPlayer }) => {
           </div>
           {isPlayer ? (
             <div className="game-players column">
-              <IonLabel className="label">Card Played</IonLabel>
+              <IonLabel className="label">You Played</IonLabel>
               <IonLabel>{cardToType(match.player1Card)}</IonLabel>
             </div>
           ) : (
@@ -104,4 +112,4 @@ const GameDisplay: React.FC<Props> = ({ id, isPlayer }) => {
   );
 };
 
-export default memo(GameDisplay);
+export default memo(OpenMatchDisplay);

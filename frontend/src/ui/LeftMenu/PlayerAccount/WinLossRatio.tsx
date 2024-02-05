@@ -39,9 +39,9 @@ const WinLossRation: React.FC<Props> = ({ won, lost, draw }) => {
         <div className="lost" style={{ width: `${lostPercent}%` }}></div>
       </div>
       <div className="bottom-progress-bar">
-        <div className="nbr-won">{wonPercent}% Won</div>
-        <div className="nbr-draw">{drawPercent}% Draw</div>
-        <div className="nbr-lost">{lostPercent}% Lost</div>
+        <div className="nbr-won">{wonPercent.toFixed(2)}% Won</div>
+        <div className="nbr-draw">{drawPercent.toFixed(2)}% Draw</div>
+        <div className="nbr-lost">{lostPercent.toFixed(2)}% Lost</div>
       </div>
     </div>
   );

@@ -45,10 +45,12 @@ export const GainsChartOption: EChartsOption = {
     pieces: [
       {
         lte: 0,
+        gte: -1,
         color: "#cf3c4f",
       },
       {
         gte: 0,
+        lte: 1,
         color: "#0ac1dd",
       },
     ],
