@@ -1,0 +1,3 @@
+[submodule "contracts/lib/airnode"]
+	path = contracts/lib/airnode
+	url = https://github.com/api3dao/airnode

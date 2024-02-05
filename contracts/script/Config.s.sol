@@ -7,12 +7,17 @@ contract Config is Script {
     struct NetworkConfig {
         uint256 deployerKey;
         address deployerAddress;
+        address airdropNodeRrp;
     }
 
     NetworkConfig public activeNetworkConfig;
 
     constructor() {
-        activeNetworkConfig = getOrCreateAnvilEthConfig();
+        if(block.chainid == 1891) {
+            activeNetworkConfig = getLightLinkTestConfig();
+        } else {
+            activeNetworkConfig = getOrCreateAnvilEthConfig();
+        }
     }
 
     function getOrCreateAnvilEthConfig()
@@ -23,7 +28,16 @@ contract Config is Script {
         return
             NetworkConfig({
                 deployerKey: vm.envUint("DEFAULT_ANVIL_PRIVATE_KEY"),
-                deployerAddress: vm.envAddress("DEFAULT_ANVIL_DEPLOYER")
+                deployerAddress: vm.envAddress("DEFAULT_ANVIL_DEPLOYER"),
+                airdropNodeRrp: address(0)
             });
+    }
+
+    function getLightLinkTestConfig() public view returns (NetworkConfig memory) {
+        return NetworkConfig({
+            deployerKey: vm.envUint("PRIVATE_KEY"),
+            deployerAddress: vm.envAddress("OWNER_ADDRESS"),
+            airdropNodeRrp: vm.envAddress("AIRDROP_NODE_RRP")
+        });
     }
 }

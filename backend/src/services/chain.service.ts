@@ -17,7 +17,7 @@ export class ChainService {
     if (this.configService.CHAIN == 'FOUNDRY') {
       this.provider = new JsonRpcProvider(this.configService.PROVIDER_URL);
     } else {
-      this.provider = new AlchemyProvider(this.configService.PROVIDER_URL);
+      this.provider = new JsonRpcProvider(this.configService.PROVIDER_URL);
     }
     const wallet = new Wallet(this.configService.WALLET_PRIVATE_KEY);
     this.signer = wallet.connect(this.provider);

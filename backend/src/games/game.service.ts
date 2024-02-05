@@ -126,6 +126,8 @@ export class GameService {
 
     const tx = await this.contracts.factory.createGame(hash, 1, { value: 1 });
     const txReceipt = await tx.wait();
+    console.log('receipt');
+    console.log(txReceipt);
     const topics = txReceipt.logs[0].topics;
     const gameId = Number(BigInt(topics[1]));
     const gameAddress = '0x' + (topics[2] as string).substring(26);
@@ -136,6 +138,7 @@ export class GameService {
       secret,
       address: gameAddress,
     });
+    console.log(game);
     const dbGame = await this.gamesRepository.save(game);
     this.games.set(gameAddress, { db: dbGame });
     this.addGame(gameAddress);

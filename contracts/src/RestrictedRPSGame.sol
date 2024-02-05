@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import {RestrictedRPSFactory} from "./RestrictedRPSFactory.sol";
+import {ISeedable} from "./ISeedable.sol";
 
 /*
  * @title RestrictedRPS
  * @author raouf2ouf
  * @notice This contract handles games (matches) in the RestrictedRPS game
  */
-contract RestrictedRPSGame {
+contract RestrictedRPSGame is ISeedable {
     ///////////////////
     // Errors
     ///////////////////
@@ -38,6 +39,8 @@ contract RestrictedRPSGame {
     error RestrictedRPS_WrongCardHash();
     error RestrictedRPS_PlayerHasOfferedTooManyMatches();
     error RestrictedRPS_NotEnoughAvailableStars();
+
+    error RestrictedRPS_NotExpectingSeed();
 
     ///////////////////
     // Types
@@ -109,6 +112,7 @@ contract RestrictedRPSGame {
     uint8 private immutable i_gameId;
 
     // State
+    bool private _expectingSeed;
     uint8 private s_winningsCut = 10;
     uint256 private s_starCost = 1;
     uint256 private s_1MCashCost = 1e14; // 0.0001
@@ -321,7 +325,8 @@ contract RestrictedRPSGame {
         s_initialHash = _initialHash;
         s_duration = _duration;
         s_seed = 0;
-        s_state = GameState.OPEN;
+        s_state = GameState.CLOSED;
+        _expectingSeed = true;
     }
 
     function _playCard(uint8 _playerId, Card _card) private {
@@ -442,8 +447,13 @@ contract RestrictedRPSGame {
         emit GameJoined(playerId, player, pub);
     }
 
-    function setSeed(uint256 seed) external {
+    function setSeed(uint256 seed) external onlyFactory {
+        if(!_expectingSeed) {
+            revert RestrictedRPS_NotExpectingSeed();
+        }
         s_seed = seed;
+        _expectingSeed = false;
+        s_state = GameState.OPEN;
         emit SeedSet(seed);
     }
 

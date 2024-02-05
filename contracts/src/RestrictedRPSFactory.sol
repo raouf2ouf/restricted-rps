@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
-// import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {QRNGConsumer} from "./QRNGConsumer.sol";
 import {RestrictedRPSGame} from "./RestrictedRPSGame.sol";
 
 /*
@@ -10,7 +10,7 @@ import {RestrictedRPSGame} from "./RestrictedRPSGame.sol";
  * @author raouf2ouf
  * @notice This contract handles games (matches) in the RestrictedRPS game
  */
-contract RestrictedRPSFactory {
+contract RestrictedRPSFactory is QRNGConsumer {
     ///////////////////
     // Errors
     ///////////////////
@@ -44,10 +44,10 @@ contract RestrictedRPSFactory {
     uint8 private constant NBR_BITS_PER_CARD = 2;
     uint8 private constant NBR_CARDS_PER_BYTE = 8 / NBR_BITS_PER_CARD;
 
-    uint256 private s_gameCreationFee = 0; // 0.001
-    uint8 private s_winningsCut = 10; // 0.0001
-    uint256 private s_starCost = 1e15; // 0.001
-    uint256 private s_1MCachCost = 1e15; // 0.001
+    uint256 private s_gameCreationFee = 0; // 0
+    uint8 private s_winningsCut = 10; // 0.01%
+    uint256 private s_starCost = 1e13; // 0.00001
+    uint256 private s_1MCachCost = 1e13; // 0.00001
 
     uint8 private _nbrOpenGames;
 
@@ -74,14 +74,10 @@ contract RestrictedRPSFactory {
         _;
     }
 
-    modifier onlyOwner() {
-        _;
-    }
-
     ///////////////////
     // Constructor
     ///////////////////
-    constructor() {}
+    constructor(address owner, address airnodeRrp) QRNGConsumer(owner, airnodeRrp)  {}
 
     ///////////////////
     // Getters
@@ -186,6 +182,9 @@ contract RestrictedRPSFactory {
         }
         s_lastGameId = gameId;
         _nbrOpenGames++;
+
+        // Ask for seed
+        makeRequestUint256(gameAddress);
 
         emit GameCreated(gameId, gameAddress);
         return (gameId, gameAddress);
