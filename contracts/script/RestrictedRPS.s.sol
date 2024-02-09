@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import {Script, console2} from "forge-std/Script.sol";
 import {Config} from "./Config.s.sol";
@@ -10,10 +10,10 @@ contract RestrictedRPSDeploy is Script {
     function run() external returns (RestrictedRPSFactory) {
         Config config = new Config();
 
-        (uint256 deployerKey, address deployerAddress, address airdropNodeRrp) = config
+        (uint256 deployerKey, , address airdropNodeRrp) = config
             .activeNetworkConfig();
         vm.startBroadcast(deployerKey);
-        RestrictedRPSFactory restrictedRPSFactory = new RestrictedRPSFactory(deployerAddress, airdropNodeRrp);
+        RestrictedRPSFactory restrictedRPSFactory = new RestrictedRPSFactory(airdropNodeRrp);
         vm.stopBroadcast();
         return restrictedRPSFactory;
     }

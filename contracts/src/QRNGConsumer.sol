@@ -1,28 +1,46 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts-v4/access/Ownable.sol";
 import {RrpRequesterV0} from "@api3/contracts/rrp/requesters/RrpRequesterV0.sol";
 import {ISeedable} from "./ISeedable.sol";
 
 
 contract QRNGConsumer is Ownable, RrpRequesterV0 {
-    error GameDoesNotExist();
+    ////////////////
+    // State
+    ////////////////
+    address private _airnode;
+    bytes32 private _endpointId;
+    address private _sponsorWallet;
 
+    mapping(bytes32 requestId => address gameAddress) private _requestToGameAddress;
+
+    ////////////////
+    // Events
+    ////////////////
     event RequestedUint256(bytes32 indexed requestId);
     event ReceivedUint256(bytes32 indexed requestId, uint256 response);
     event WithdrawalRequested(address indexed airnode, address indexed sponsorWallet);
 
+    ////////////////
+    // Errors
+    ////////////////
+    error GameDoesNotExist();
 
-    address public _airnode;
-    bytes32 public _endpointId;
-    address public _sponsorWallet;
+    ////////////////
+    // Construcor
+    ////////////////
+    constructor(address airnodeRrp) Ownable() RrpRequesterV0(airnodeRrp) {}
 
-    mapping(bytes32 requestId => address gameAddress) public _requestToGameAddress;
-
-    constructor(address owner, address airnodeRrp) Ownable(owner) RrpRequesterV0(airnodeRrp) {}
+    ////////////////
+    // External
+    ////////////////
+    function getRequestParameters() external view returns (address, bytes32, address) {
+        return (_airnode, _endpointId, _sponsorWallet);
+    }
 
     function setRequestParameters(
         address airnode,
@@ -34,7 +52,25 @@ contract QRNGConsumer is Ownable, RrpRequesterV0 {
         _sponsorWallet = sponsorWallet;
     }
 
-    function makeRequestUint256(address gameAddress) internal {
+    function fulfillUint256(bytes32 requestId, bytes calldata data) external onlyAirnodeRrp {
+        address gameAddress = _requestToGameAddress[requestId];
+        if(gameAddress == address(0)) {
+            revert GameDoesNotExist();
+        }
+        
+        uint256 seed = abi.decode(data, (uint256));
+        ISeedable(gameAddress).setSeed(seed);
+        emit ReceivedUint256(requestId, seed);
+    }
+
+    ////////////////
+    // Public
+    ////////////////
+
+    ////////////////
+    // Internal
+    ////////////////
+    function _makeRequestUint256(address gameAddress) internal {
         bytes32 requestId = airnodeRrp.makeFullRequest(
             _airnode,
             _endpointId,
@@ -48,14 +84,7 @@ contract QRNGConsumer is Ownable, RrpRequesterV0 {
         emit RequestedUint256(requestId);
     }
 
-    function fulfillUint256(bytes32 requestId, bytes calldata data) external onlyAirnodeRrp {
-        address gameAddress = _requestToGameAddress[requestId];
-        if(gameAddress == address(0)) {
-            revert GameDoesNotExist();
-        }
-        
-        uint256 seed = abi.decode(data, (uint256));
-        ISeedable(gameAddress).setSeed(seed);
-        emit ReceivedUint256(requestId, seed);
-    }
+    ////////////////
+    // Private
+    ////////////////
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import {QRNGConsumer} from "./QRNGConsumer.sol";
 import {RestrictedRPSGame} from "./RestrictedRPSGame.sol";
@@ -12,94 +12,88 @@ import {RestrictedRPSGame} from "./RestrictedRPSGame.sol";
  */
 contract RestrictedRPSFactory is QRNGConsumer {
     ///////////////////
-    // Errors
+    // Types
     ///////////////////
+
+    ////////////////
+    // State
+    ////////////////
+    uint8 private constant _NBR_GAMES = 20;
+    uint8 private constant _MAX_DURATION = 74; // three days
+    uint8 private constant _NBR_STARS = 3;
+
+    uint8 private constant _CARDS_PER_PLAYER = 6;
+    uint8 private constant _MAX_PLAYERS = 6;
+    uint8 private constant _MAX_NBR_CARDS = _CARDS_PER_PLAYER * _MAX_PLAYERS;
+    uint8 private constant _NBR_CARDS_PER_TYPE = _MAX_NBR_CARDS / 3;
+    uint8 private constant _NBR_BITS_PER_CARD = 2;
+    uint8 private constant _NBR_CARDS_PER_BYTE = 8 / _NBR_BITS_PER_CARD;
+
+    uint256 private _gameCreationFee = 1; // 0
+    uint8 private _winningsCut = 1; // 0.001 (0.1%) 100% is 1000
+    uint256 private _starCost = 1e13; // 0.00001
+    uint256 private _m1CachCost = 1e13; // 0.00001
+
+    uint8 private _nbrOpenGames;
+
+    /// @dev Mapping of banned players
+    mapping(address player => bool banned) private _banned;
+
+    /// @dev games (100 games history)
+    address[_NBR_GAMES] private _games;
+    uint8 private _lastGameId = _NBR_GAMES - 1;
+
+    ////////////////
+    // Events
+    ////////////////
+    event GameCreated(uint256 indexed gameId, address indexed gameAddress);
+    event GameJoined(uint256 indexed gameId, address player);
+
+    ////////////////
+    // Errors
+    ////////////////
     error RestrictedRPSFactory_InvalidGameId(uint256 gameId);
     error RestrictedRPSFactory_PlayerBanned(address player);
     error RestrictedRPSFactory_SendMore();
     error RestrictedRPSFactory_TooManyOpenGames();
     error RestrictedRPSFactory_DurationTooLong();
 
-    ///////////////////
-    // Events
-    ///////////////////
-    event GameCreated(uint256 indexed gameId, address indexed gameAddress);
-    event GameJoined(uint256 indexed gameId, address player);
-
-    ///////////////////
-    // Types
-    ///////////////////
-
-    ///////////////////
-    // State Variables
-    ///////////////////
-    uint8 private constant NBR_GAMES = 100;
-    uint8 private constant MAX_DURATION = 74;
-    uint8 private constant NBR_STARS = 3;
-
-    uint8 private constant CARDS_PER_PLAYER = 6;
-    uint8 private constant MAX_PLAYERS = 6;
-    uint8 private constant MAX_NBR_CARDS = CARDS_PER_PLAYER * MAX_PLAYERS;
-    uint8 private constant NBR_CARDS_PER_TYPE = MAX_NBR_CARDS / 3;
-    uint8 private constant NBR_BITS_PER_CARD = 2;
-    uint8 private constant NBR_CARDS_PER_BYTE = 8 / NBR_BITS_PER_CARD;
-
-    uint256 private s_gameCreationFee = 0; // 0
-    uint8 private s_winningsCut = 10; // 0.01%
-    uint256 private s_starCost = 1e13; // 0.00001
-    uint256 private s_1MCachCost = 1e13; // 0.00001
-
-    uint8 private _nbrOpenGames;
-
-    /// @dev Mapping of banned players
-    mapping(address player => bool banned) private s_banned;
-
-    /// @dev games (100 games history)
-    address[NBR_GAMES] private s_games;
-    uint8 private s_lastGameId = NBR_GAMES - 1;
+    ////////////////
+    // Construcor
+    ////////////////
+    constructor(address airnodeRrp) QRNGConsumer(airnodeRrp)  {}
 
     ///////////////////
     // Modifiers
     ///////////////////
-    modifier isValidGameId(uint256 _gameId) {
-        if (_gameId >= NBR_GAMES || s_games[_gameId] == address(0)) {
-            revert RestrictedRPSFactory_InvalidGameId(_gameId);
+    modifier isValidGameId(uint256 gameId) {
+        if (gameId >= _NBR_GAMES || _games[gameId] == address(0)) {
+            revert RestrictedRPSFactory_InvalidGameId(gameId);
         }
         _;
     }
     modifier isNotBanned() {
-        if (s_banned[msg.sender]) {
+        if (_banned[msg.sender]) {
             revert RestrictedRPSFactory_PlayerBanned(msg.sender);
         }
         _;
     }
 
-    ///////////////////
-    // Constructor
-    ///////////////////
-    constructor(address owner, address airnodeRrp) QRNGConsumer(owner, airnodeRrp)  {}
-
-    ///////////////////
-    // Getters
-    ///////////////////
-    function getBasicJoiningCost() public view returns (uint256) {
-        return (s_starCost * NBR_STARS);
+    ////////////////
+    // External
+    ////////////////
+    function getGame(uint256 gameId) external view returns (address) {
+        return address(_games[gameId]);
     }
-
-    function getGame(uint256 _gameId) external view returns (address) {
-        return address(s_games[_gameId]);
+    function getGames() external view returns (address[_NBR_GAMES] memory) {
+        return _games;
     }
-
-    function getGames() external view returns (address[NBR_GAMES] memory) {
-        return s_games;
-    }
-
     function getOpenGames() public view returns (address[] memory) {
         uint8 nbrOpenGames = _nbrOpenGames;
         address[] memory result = new address[](nbrOpenGames);
         uint8 j;
-        for (uint8 i; i < NBR_GAMES; i++) {
-            address adr = s_games[i];
+        for (uint8 i; i < _NBR_GAMES; i++) {
+            address adr = _games[i];
             if (adr != address(0)) {
                 RestrictedRPSGame game = RestrictedRPSGame(adr);
                 if (game.isOpen()) {
@@ -114,168 +108,162 @@ contract RestrictedRPSFactory is QRNGConsumer {
         return result;
     }
 
-    function isBanned(address _user) external view returns (bool) {
-        return s_banned[_user];
+    function getBasicJoiningCost() public view returns (uint256) {
+        return (_starCost * _NBR_STARS);
     }
 
-    ///////////////////
-    // Setters
-    ///////////////////
-    function setGameCreationFee(uint256 _gameCreationFee) external onlyOwner {
-        s_gameCreationFee = _gameCreationFee;
+    function isBanned(address user) external view returns (bool) {
+        return _banned[user];
+    }
+    function ban(address user) external onlyOwner {
+        _banned[user] = true;
     }
 
-    function setGameJoiningFee(uint8 _winningsCut) external onlyOwner {
-        s_winningsCut = _winningsCut;
+    function unban(address user) external onlyOwner {
+        _banned[user] = false;
     }
 
-    function setStarCost(uint256 _starCost) external onlyOwner {
-        s_starCost = _starCost;
+    function setGameCreationFee(uint256 gameCreationFee) external onlyOwner {
+        _gameCreationFee = gameCreationFee;
     }
 
-    ///////////////////
-    // Internal Functions
-    ///////////////////
+    function setWinningsCut(uint8 winningsCut) external onlyOwner {
+        _winningsCut = winningsCut;
+    }
 
-    ///////////////////
-    // External Functions
-    ///////////////////
-    /*
-     * @param _initialHash: The hash of the initial shuffle of the deck
-     */
+    function setStarCost(uint256 starCost) external onlyOwner {
+        _starCost = starCost;
+    }
+
     function createGame(
-        bytes32 _initialHash,
-        uint8 _duration
+        bytes32 initialHash,
+        uint8 duration
     ) external payable isNotBanned returns (uint8, address) {
-        if (msg.value < s_gameCreationFee) {
+        if (msg.value < _gameCreationFee) {
             revert RestrictedRPSFactory_SendMore();
         }
-        uint8 gameId = (s_lastGameId + 1) % NBR_GAMES;
-        address gameAddress = s_games[gameId];
+        uint8 gameId = (_lastGameId + 1) % _NBR_GAMES;
+        address gameAddress = _games[gameId];
         if (address(gameAddress) != address(0)) {
             RestrictedRPSGame game = RestrictedRPSGame(gameAddress);
-            if (game.getState() == RestrictedRPSGame.GameState.OPEN) {
+            if (game.getState() != RestrictedRPSGame.GameState.CLOSED) {
                 revert RestrictedRPSFactory_TooManyOpenGames();
             } else {
                 game.resetGame(
-                    s_winningsCut,
-                    s_starCost,
-                    s_1MCachCost,
+                    _winningsCut,
+                    _starCost,
+                    _m1CachCost,
                     msg.sender,
-                    _initialHash,
-                    _duration
+                    initialHash,
+                    duration
                 );
             }
         } else {
             RestrictedRPSGame game = new RestrictedRPSGame(
                 address(this),
                 gameId,
-                s_winningsCut,
-                s_starCost,
-                s_1MCachCost,
+                _winningsCut,
+                _starCost,
+                _m1CachCost,
                 msg.sender,
-                _initialHash,
-                _duration
+                initialHash,
+                duration
             );
             gameAddress = address(game);
-            s_games[gameId] = gameAddress;
+            _games[gameId] = gameAddress;
         }
-        s_lastGameId = gameId;
+        _lastGameId = gameId;
         _nbrOpenGames++;
 
         // Ask for seed
-        makeRequestUint256(gameAddress);
+        _makeRequestUint256(gameAddress);
 
         emit GameCreated(gameId, gameAddress);
         return (gameId, gameAddress);
     }
-
     function verifyAndCloseGame() external {
         // TODO
         _nbrOpenGames--;
     }
 
-    function resetGame(uint8 _gameId) external onlyOwner {
-        // TODO
-    }
-
-    function ban(address _user) external onlyOwner {
-        s_banned[_user] = true;
-    }
-
-    function unban(address _user) external onlyOwner {
-        s_banned[_user] = false;
-    }
-
-    ///////////////////
-    // Public Helper Functions
-    ///////////////////
+    ////////////////
+    // Public
+    ////////////////
     function generateRandomNumberFromSeed(
-        uint256 _seed,
+        uint256 seed,
         uint8 range
     ) public pure returns (uint256) {
-        return uint256(keccak256(abi.encodePacked(_seed))) % range;
+        return uint256(keccak256(abi.encodePacked(seed))) % range;
     }
 
-    function getCard(bytes9 _deck, uint8 _index) public pure returns (uint8) {
+    function getCard(bytes9 deck, uint8 index) public pure returns (uint8) {
         uint8 shiftAmount = uint8(
-            (_index % NBR_CARDS_PER_BYTE) * NBR_BITS_PER_CARD
+            (index % _NBR_CARDS_PER_BYTE) * _NBR_BITS_PER_CARD
         );
-        return uint8((uint72(_deck) >> shiftAmount) & 0x03);
+        return uint8((uint72(deck) >> shiftAmount) & 0x03);
     }
 
     function setCard(
-        bytes9 _deck,
-        uint8 _index,
-        uint8 _card
+        bytes9 deck,
+        uint8 index,
+        uint8 card
     ) public pure returns (bytes9) {
         uint8 shiftAmount = uint8(
-            (_index % NBR_CARDS_PER_BYTE) * NBR_BITS_PER_CARD
+            (index % _NBR_CARDS_PER_BYTE) * _NBR_BITS_PER_CARD
         );
         // clear existing bits
-        _deck &= ~(bytes9(uint72(0x03)) << shiftAmount);
-        _deck |= bytes9(uint72(_card)) << shiftAmount;
-        return _deck;
+        deck &= ~(bytes9(uint72(0x03)) << shiftAmount);
+        deck |= bytes9(uint72(card)) << shiftAmount;
+        return deck;
     }
 
-    function isValidDeck(bytes9 _deck) public pure returns (bool) {
+    function isValidDeck(bytes9 deck) public pure returns (bool) {
         uint8[3] memory cardCounts;
-        for (uint8 i; i < MAX_NBR_CARDS; i++) {
-            uint8 cardType = getCard(_deck, i);
+        for (uint8 i; i < _MAX_NBR_CARDS; i++) {
+            uint8 cardType = getCard(deck, i);
             cardCounts[cardType]++;
         }
 
         return
-            cardCounts[0] == NBR_CARDS_PER_TYPE &&
-            cardCounts[1] == NBR_CARDS_PER_TYPE &&
-            cardCounts[2] == NBR_CARDS_PER_TYPE;
+            cardCounts[0] == _NBR_CARDS_PER_TYPE &&
+            cardCounts[1] == _NBR_CARDS_PER_TYPE &&
+            cardCounts[2] == _NBR_CARDS_PER_TYPE;
     }
 
     function getNbrCardsOfPlayer(
-        bytes9 _deck,
-        uint8 _playerId
+        bytes9 deck,
+        uint8 playerId
     ) public pure returns (int8[3] memory result) {
-        uint8 start = _playerId * CARDS_PER_PLAYER;
-        for (uint8 i; i < CARDS_PER_PLAYER; i++) {
+        uint8 start = playerId * _CARDS_PER_PLAYER;
+        for (uint8 i; i < _CARDS_PER_PLAYER; i++) {
             uint8 cardIdx = start + i;
-            uint8 card = getCard(_deck, cardIdx);
+            uint8 card = getCard(deck, cardIdx);
             result[card]++;
         }
     }
 
     function shuffleDeck(
-        bytes9 _deck,
-        uint256 _seed
+        bytes9 deck,
+        uint256 seed
     ) public pure returns (bytes9) {
         for (uint8 i = 35; i > 0; i--) {
-            uint8 j = uint8(generateRandomNumberFromSeed(_seed, i + 1));
+            uint8 j = uint8(generateRandomNumberFromSeed(seed, i + 1));
             // Swap
-            uint8 cardI = getCard(_deck, i);
-            uint8 cardJ = getCard(_deck, j);
+            uint8 cardI = getCard(deck, i);
+            uint8 cardJ = getCard(deck, j);
 
-            _deck = setCard(_deck, i, cardJ);
-            _deck = setCard(_deck, j, cardI);
+            deck = setCard(deck, i, cardJ);
+            deck = setCard(deck, j, cardI);
         }
-        return _deck;
+        return deck;
     }
+
+    ////////////////
+    // Internal
+    ////////////////
+
+    ////////////////
+    // Private
+    ////////////////
+
 }

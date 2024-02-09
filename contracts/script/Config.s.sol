@@ -2,6 +2,7 @@
 pragma solidity >=0.8.2 <0.9.0;
 
 import {Script} from "forge-std/Script.sol";
+import {AirnodeRrpV0Mock} from "../test/mock/AirnodeRrpV0Mock.sol";
 
 contract Config is Script {
     struct NetworkConfig {
@@ -22,14 +23,14 @@ contract Config is Script {
 
     function getOrCreateAnvilEthConfig()
         public
-        view
         returns (NetworkConfig memory)
     {
+        AirnodeRrpV0Mock airnodeMock = new AirnodeRrpV0Mock();
         return
             NetworkConfig({
                 deployerKey: vm.envUint("DEFAULT_ANVIL_PRIVATE_KEY"),
                 deployerAddress: vm.envAddress("DEFAULT_ANVIL_DEPLOYER"),
-                airdropNodeRrp: address(0)
+                airdropNodeRrp: address(airnodeMock)
             });
     }
 

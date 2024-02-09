@@ -1,3 +1,9 @@
 [submodule "contracts/lib/airnode"]
 	path = contracts/lib/airnode
 	url = https://github.com/api3dao/airnode
+[submodule "contracts/lib/openzeppelin-contracts-00"]
+	path = contracts/lib/openzeppelin-contracts-00
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "contracts/lib/openzeppelin-contracts-v4"]
+	path = contracts/lib/openzeppelin-contracts-v4
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
