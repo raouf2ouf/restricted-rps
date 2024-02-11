@@ -74,7 +74,14 @@ contract AirnodeRrpV0Mock is IAirnodeRrpV0 {
         bytes4 fulfillFunctionId,
         bytes calldata parameters
     ) external returns (bytes32 requestId) {
+        fulfillAddressMock = fulfillAddress;
+        fulfillFunctionIdMock = fulfillFunctionId;
+        return requestIdMock;
     }
+
+    address public fulfillAddressMock;
+    bytes4 public fulfillFunctionIdMock;
+    bytes32 public requestIdMock = keccak256(abi.encode(0x1));
 
     function fulfill(
         bytes32 requestId,
@@ -84,7 +91,9 @@ contract AirnodeRrpV0Mock is IAirnodeRrpV0 {
         bytes calldata data,
         bytes calldata signature
     ) external returns (bool callSuccess, bytes memory callData) {
-
+        (callSuccess, callData) = fulfillAddressMock.call( // solhint-disable-line avoid-low-level-calls
+            abi.encodeWithSelector(fulfillFunctionIdMock, requestIdMock, data)
+        );
     }
 
     function fail(

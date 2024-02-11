@@ -5,6 +5,8 @@ import {Test, console2} from "forge-std/Test.sol";
 import {RestrictedRPSDeploy} from "../../script/RestrictedRPS.s.sol";
 import {RestrictedRPSFactory} from "../../src/RestrictedRPSFactory.sol";
 import {RestrictedRPSGame} from "../../src/RestrictedRPSGame.sol";
+import {IAirnodeRrpV0} from "@api3/contracts/rrp/interfaces/IAirnodeRrpV0.sol";
+// import {AirnodeRrpV0Mock} from "../mock/AirnodeRrpV0Mock.sol";
 
 contract TestUtils is Test {
     RestrictedRPSFactory public restrictedRPSFactory;
@@ -67,6 +69,8 @@ contract TestUtils is Test {
 
         game = RestrictedRPSGame(restrictedRPSFactory.getGame(gameId));
 
+        seedWithRNG(123456);
+
         for (uint8 i; i < nbrPlayers; i++) {
             vm.prank(PLAYERS[i]);
             game.joinGame{value: joiningCost}("");
@@ -91,8 +95,10 @@ contract TestUtils is Test {
         return keccak256(bytes.concat(bytes1(card), bytes(secret)));
     }
 
-    function seedWithRNG() public view {
-
+    function seedWithRNG(uint256 seed) public {
+        IAirnodeRrpV0 airnodeRrp = restrictedRPSFactory.airnodeRrp();
+        bytes32 requestId = keccak256(abi.encode(0x1));
+        airnodeRrp.fulfill(0, address(0), address(0), 0, abi.encode(seed), abi.encode(0));
     }
 
     function offerMatch(
@@ -107,5 +113,28 @@ contract TestUtils is Test {
         hashedCard = hashCard(card, secret);
         vm.prank(player);
         matchId = game.offerMatch(hashedCard, player1Bet, player2Bet);
+    }
+
+
+    function offerAndAnswerAndCloseMatch(RestrictedRPSGame game, uint8 p1, uint8 p2, uint8 p1Card, uint8 p2Card, string memory secret, uint8 p1Bet, uint8 p2Bet) public returns (uint8 matchId) {
+        address player1 = PLAYERS[p1];
+        address player2 = PLAYERS[p2];
+
+        // offer match
+        (uint8 mId, ) = offerMatch(
+            game,
+            player1,
+            p1Card,
+            secret,
+            p1Bet,
+            p2Bet
+        );
+
+        vm.prank(player2);
+        game.answerMatch(mId, RestrictedRPSGame.Card(p2Card));
+
+        vm.prank(player1);
+        game.closeMatch(mId, p1Card, secret);
+        return mId;
     }
 }

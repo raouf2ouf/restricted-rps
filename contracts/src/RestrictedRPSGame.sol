@@ -446,6 +446,10 @@ contract RestrictedRPSGame is ISeedable {
         emit GameJoined(playerId, player, pub);
     }
 
+    function getSeed() external returns (uint256) {
+        return _seed;
+    }
+
     function setSeed(uint256 seed) external onlyFactory {
         if(_state != GameState.WAITING_FOR_SEED) {
             revert RestrictedRPS_NotExpectingSeed();

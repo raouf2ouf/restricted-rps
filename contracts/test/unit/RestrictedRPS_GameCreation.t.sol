@@ -62,243 +62,164 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         createGame(initialHash, duration, GAME_CREATION_FEE);
     }
 
-    // function test_SeedOpenGame() public {
-    //     bytes9 deck = generateDeck();
-    //     bytes32 initialHash = hashDeck(deck, "secret");
-    //     uint8 duration = 1;
-    //     (uint8 gameId, ) = createGame(initialHash, duration, GAME_CREATION_FEE);
-    //     vm.expectRevert(
-    //         RestrictedRPSFactory.RestrictedRPSFactory_SendMore.selector
-    //     );
-    //     // vm.prank(DEALER);
+    function test_SeedOpenGame() public {
+        bytes9 deck = generateDeck();
+        bytes32 initialHash = hashDeck(deck, "secret");
+        uint8 duration = 1;
+        (uint8 gameId, ) = createGame(initialHash, duration, GAME_CREATION_FEE);
 
-    // }
+        RestrictedRPSGame game = RestrictedRPSGame(
+            restrictedRPSFactory.getGame(gameId)
+        );
+        assert(game.getState() == RestrictedRPSGame.GameState.WAITING_FOR_SEED);
 
-    // function test_GameCreationWithReset() public {
-    //     bytes32 initialHash = 0x0;
-    //     uint8 duration = 1;
+        vm.prank(DEALER);
+        uint256 seed = 12345678910;
+        seedWithRNG(seed);
 
-    //     for (uint8 i; i < MAX_GAMES; i++) {
-    //         createGame(initialHash, duration, GAME_CREATION_FEE);
-    //     }
+        assert(game.getState() == RestrictedRPSGame.GameState.OPEN);
+        assert(game.getSeed() == seed);
+    }
 
-    //     // TODO close last game
+    function test_GameCreationWithReset() public {
+        // bytes32 initialHash = 0x0;
+        // uint8 duration = 1;
 
-    //     uint8 gameId = createGame(initialHash, duration, GAME_CREATION_FEE);
-    //     assert(gameId == 0);
-    // }
+        // for (uint8 i; i < MAX_GAMES; i++) {
+        //     createGame(initialHash, duration, GAME_CREATION_FEE);
+        // }
+
+        // // TODO close last game
+
+        // uint8 gameId = createGame(initialHash, duration, GAME_CREATION_FEE);
+        // assert(gameId == 0);
+    }
 
     //////////////////
     // Game Joining
     //////////////////
-    // function test_JoiningGame() public playersFunded(1) {
-    //     bytes32 initialHash = 0x0;
-    //     uint8 duration = 1;
-    //     (uint8 gameId, ) = createGame(initialHash, duration, GAME_CREATION_FEE);
+    function test_JoiningGame() public playersFunded(1) {
+        bytes9 deck = generateDeck();
+        bytes32 initialHash = hashDeck(deck, "secret");
+        uint8 duration = 1;
+        (uint8 gameId, ) = createGame(initialHash, duration, GAME_CREATION_FEE);
 
-    //     RestrictedRPSGame game = RestrictedRPSGame(
-    //         restrictedRPSFactory.getGame(gameId)
-    //     );
+        RestrictedRPSGame game = RestrictedRPSGame(
+            restrictedRPSFactory.getGame(gameId)
+        );
+        uint256 seed = 12345678910;
+        seedWithRNG(seed);
 
-    //     address player = PLAYERS[0];
-    //     vm.startPrank(player);
-    //     uint8 playerId = game.joinGame{
-    //         value: restrictedRPSFactory.getBasicJoiningCost()
-    //     }("");
-    //     vm.stopPrank();
+        address player = PLAYERS[0];
+        vm.startPrank(player);
+        uint8 playerId = game.joinGame{
+            value: restrictedRPSFactory.getBasicJoiningCost()
+        }("");
+        vm.stopPrank();
 
-    //     RestrictedRPSGame.PlayerState memory playerState = game.getPlayerState(
-    //         playerId
-    //     );
+        RestrictedRPSGame.PlayerState memory playerState = game.getPlayerState(
+            playerId
+        );
 
-    //     assert(playerState.player == player);
-    //     assert(playerState.encryptedHand == 0x0);
-    //     assert(playerState.nbrStars == NBR_STARS);
-    //     assert(playerState.nbrStarsLocked == 0);
-    //     assert(playerState.nbrRockUsed == 0);
-    //     assert(playerState.nbrPaperUsed == 0);
-    //     assert(playerState.nbrScissorsUsed == 0);
-    // }
+        assert(playerState.player == player);
+        assert(playerState.encryptedHand == 0x0);
+        assert(playerState.nbrStars == NBR_STARS);
+        assert(playerState.nbrStarsLocked == 0);
+        assert(playerState.nbrRockUsed == 0);
+        assert(playerState.nbrPaperUsed == 0);
+        assert(playerState.nbrScissorsUsed == 0);
+    }
 
-    // function test_JoiningGameWithInsufficiantFunds() public playersFunded(1) {
-    //     bytes32 initialHash = 0x0;
-    //     uint8 duration = 1;
-    //     (uint8 gameId,) = createGame(initialHash, duration, GAME_CREATION_FEE);
+    function test_JoiningGameWithInsufficiantFunds() public playersFunded(1) {
+        bytes9 deck = generateDeck();
+        bytes32 initialHash = hashDeck(deck, "secret");
+        uint8 duration = 1;
+        (uint8 gameId, ) = createGame(initialHash, duration, GAME_CREATION_FEE);
 
-    //     RestrictedRPSGame game = RestrictedRPSGame(
-    //         restrictedRPSFactory.getGame(gameId)
-    //     );
+        RestrictedRPSGame game = RestrictedRPSGame(
+            restrictedRPSFactory.getGame(gameId)
+        );
+        uint256 seed = 12345678910;
+        seedWithRNG(seed);
 
-    //     address player = PLAYERS[0];
-    //     vm.expectRevert(RestrictedRPSGame.RestrictedRPS_SendMore.selector);
-    //     vm.prank(player);
-    //     game.joinGame{value: 1}("");
-    // }
+        address player = PLAYERS[0];
+        vm.expectRevert(RestrictedRPSGame.RestrictedRPS_SendMore.selector);
+        vm.prank(player);
+        game.joinGame{value: 1}("");
+    }
 
-    // function test_JoiningAFullGame() public playersFunded(7) {
-    //     bytes32 initialHash = 0x0;
-    //     uint8 duration = 1;
-    //     (uint8 gameId,) = createGame(initialHash, duration, GAME_CREATION_FEE);
+    function test_JoiningAFullGame() public playersFunded(7) {
+        bytes9 deck = generateDeck();
+        bytes32 initialHash = hashDeck(deck, "secret");
+        uint8 duration = 1;
+        (uint8 gameId, ) = createGame(initialHash, duration, GAME_CREATION_FEE);
 
-    //     uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
+        RestrictedRPSGame game = RestrictedRPSGame(
+            restrictedRPSFactory.getGame(gameId)
+        );
+        uint256 seed = 12345678910;
+        seedWithRNG(seed);
 
-    //     RestrictedRPSGame game = RestrictedRPSGame(
-    //         restrictedRPSFactory.getGame(gameId)
-    //     );
+        uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
 
-    //     for (uint8 i; i < 6; i++) {
-    //         vm.prank(PLAYERS[i]);
-    //         game.joinGame{value: joiningCost}("");
-    //     }
+        for (uint8 i; i < 6; i++) {
+            vm.prank(PLAYERS[i]);
+            game.joinGame{value: joiningCost}("");
+        }
 
-    //     vm.expectRevert(RestrictedRPSGame.RestrictedRPS_GameFull.selector);
-    //     vm.prank(PLAYERS[6]);
-    //     game.joinGame{value: joiningCost}("");
-    // }
+        vm.expectRevert(RestrictedRPSGame.RestrictedRPS_GameFull.selector);
+        vm.prank(PLAYERS[6]);
+        game.joinGame{value: joiningCost}("");
+    }
 
-    // // function test_JoiningANonOpenGame() public playersFunded(1) {
-    // //     // TODO
-    // //     vm.expectRevert(RestrictedRPSGame.RestrictedRPS_GameNotOpen.selector);
-    // // }
+    function test_JoiningANonOpenGame() public playersFunded(1) {
+        bytes9 deck = generateDeck();
+        bytes32 initialHash = hashDeck(deck, "secret");
+        uint8 duration = 1;
+        (uint8 gameId, ) = createGame(initialHash, duration, GAME_CREATION_FEE);
 
-    // function test_DealerJoining() public playersFunded(1) {
-    //     bytes32 initialHash = 0x0;
-    //     uint8 duration = 1;
-    //     (uint8 gameId,) = createGame(initialHash, duration, GAME_CREATION_FEE);
-    //     uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
+        RestrictedRPSGame game = RestrictedRPSGame(
+            restrictedRPSFactory.getGame(gameId)
+        );
+        address player = PLAYERS[0];
+        uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
+        vm.expectRevert(RestrictedRPSGame.RestrictedRPS_GameNotOpen.selector);
+        vm.startPrank(player);
+        uint8 playerId = game.joinGame{
+            value: joiningCost
+        }("");
+        vm.stopPrank();
+    }
 
-    //     RestrictedRPSGame game = RestrictedRPSGame(
-    //         restrictedRPSFactory.getGame(gameId)
-    //     );
+    function test_DealerJoining() public playersFunded(1) {
+        bytes9 deck = generateDeck();
+        bytes32 initialHash = hashDeck(deck, "secret");
+        uint8 duration = 1;
+        (uint8 gameId, ) = createGame(initialHash, duration, GAME_CREATION_FEE);
 
-    //     vm.expectRevert(
-    //         RestrictedRPSGame.RestrictedRPS_DealerCannotJoin.selector
-    //     );
-    //     vm.prank(DEALER);
-    //     game.joinGame{value: joiningCost}("");
-    // }
+        RestrictedRPSGame game = RestrictedRPSGame(
+            restrictedRPSFactory.getGame(gameId)
+        );
+        uint256 seed = 12345678910;
+        seedWithRNG(seed);
+        uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
 
-    // function test_JoiningTwiceSameGame() public playersFunded(7) {
-    //     RestrictedRPSGame game = createValidGame(4, 1);
-    //     uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
+        vm.expectRevert(
+            RestrictedRPSGame.RestrictedRPS_DealerCannotJoin.selector
+        );
+        vm.prank(DEALER);
+        game.joinGame{value: joiningCost}("");
+    }
 
-    //     vm.expectRevert(
-    //         RestrictedRPSGame.RestrictedRPS_PlayerAlreadyJoined.selector
-    //     );
-    //     vm.prank(PLAYERS[2]);
-    //     game.joinGame{value: joiningCost}("");
-    // }
+    function test_JoiningTwiceSameGame() public playersFunded(7) {
+        RestrictedRPSGame game = createGameWithPlayers(4, 1);
+        uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
 
-    // //////////////////
-    // // Game Playing
-    // //////////////////
-    // function test_offeringAMatch() public playersFunded(2) {
-    //     // Create Valid Game
-    //     RestrictedRPSGame game = createValidGame(2, 1);
+        vm.expectRevert(
+            RestrictedRPSGame.RestrictedRPS_PlayerAlreadyJoined.selector
+        );
+        vm.prank(PLAYERS[2]);
+        game.joinGame{value: joiningCost}("");
+    }
 
-    //     address player1 = PLAYERS[0];
-
-    //     // offer match
-    //     (uint8 matchId, bytes32 hashedCard) = offerMatch(
-    //         game,
-    //         player1,
-    //         uint8(RestrictedRPSGame.Card.SCISSORS),
-    //         1,
-    //         2
-    //     );
-    //     RestrictedRPSGame.Match memory m = game.getMatch(matchId);
-    //     RestrictedRPSGame.PlayerState memory playerState = game.getPlayerState(
-    //         0
-    //     );
-
-    //     assert(m.player1 == 0);
-    //     assert(m.player1Hash == hashedCard);
-    //     assert(m.player1Bet == 1);
-    //     assert(m.player2Bet == 2);
-    //     assert(m.result == RestrictedRPSGame.MatchState.UNDECIDED);
-    //     assert(playerState.nbrStarsLocked == 1);
-    // }
-
-    // function test_cancellingAMatch() public playersFunded(2) {
-    //     // Create Valid Game
-    //     RestrictedRPSGame game = createValidGame(2, 1);
-
-    //     address player1 = PLAYERS[0];
-
-    //     // offer match
-    //     (uint8 matchId, ) = offerMatch(
-    //         game,
-    //         player1,
-    //         uint8(RestrictedRPSGame.Card.SCISSORS),
-    //         1,
-    //         2
-    //     );
-    //     // cancel match
-    //     vm.prank(player1);
-    //     game.cancelMatch(matchId);
-    //     RestrictedRPSGame.Match memory m = game.getMatch(matchId);
-    //     RestrictedRPSGame.PlayerState memory playerState = game.getPlayerState(
-    //         0
-    //     );
-
-    //     assert(m.result == RestrictedRPSGame.MatchState.CANCELLED);
-    //     assert(playerState.nbrStarsLocked == 0);
-    // }
-
-    // function test_OfferingTooManyMatches() public playersFunded(2) {
-    //     // Create Valid Game
-    //     RestrictedRPSGame game = createValidGame(2, 1);
-
-    //     address player1 = PLAYERS[0];
-
-    //     // offer match
-    //     for (uint8 i; i < 20; i++) {
-    //         (uint8 matchId, ) = offerMatch(
-    //             game,
-    //             player1,
-    //             uint8(RestrictedRPSGame.Card.SCISSORS),
-    //             1,
-    //             2
-    //         );
-    //         vm.prank(player1);
-    //         game.cancelMatch(matchId);
-    //     }
-
-    //     vm.expectRevert(
-    //         RestrictedRPSGame
-    //             .RestrictedRPS_PlayerHasOfferedTooManyMatches
-    //             .selector
-    //     );
-    //     offerMatch(game, player1, uint8(RestrictedRPSGame.Card.SCISSORS), 1, 2);
-    // }
-
-    // function test_answeringAMatch() public playersFunded(2) {
-    //     // Create Valid Game
-    //     RestrictedRPSGame game = createValidGame(2, 1);
-
-    //     address player1 = PLAYERS[0];
-    //     address player2 = PLAYERS[1];
-
-    //     // offer match
-    //     (uint8 matchId, ) = offerMatch(
-    //         game,
-    //         player1,
-    //         uint8(RestrictedRPSGame.Card.SCISSORS),
-    //         1,
-    //         2
-    //     );
-
-    //     vm.prank(player2);
-    //     game.answerMatch(matchId, RestrictedRPSGame.Card.ROCK);
-
-    //     RestrictedRPSGame.Match memory m = game.getMatch(matchId);
-    //     RestrictedRPSGame.PlayerState memory playerState = game.getPlayerState(
-    //         1
-    //     );
-
-    //     assert(m.player2 == 1);
-    //     assert(m.player2Card == RestrictedRPSGame.Card.ROCK);
-    //     assert(m.result == RestrictedRPSGame.MatchState.ANSWERED);
-    //     assert(playerState.nbrStarsLocked == 2);
-    // }
 }

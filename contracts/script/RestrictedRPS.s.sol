@@ -10,10 +10,10 @@ contract RestrictedRPSDeploy is Script {
     function run() external returns (RestrictedRPSFactory) {
         Config config = new Config();
 
-        (uint256 deployerKey, , address airdropNodeRrp) = config
+        (uint256 deployerKey, , address airnodeRrp) = config
             .activeNetworkConfig();
         vm.startBroadcast(deployerKey);
-        RestrictedRPSFactory restrictedRPSFactory = new RestrictedRPSFactory(airdropNodeRrp);
+        RestrictedRPSFactory restrictedRPSFactory = new RestrictedRPSFactory(airnodeRrp);
         vm.stopBroadcast();
         return restrictedRPSFactory;
     }

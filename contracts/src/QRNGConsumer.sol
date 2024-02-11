@@ -16,7 +16,7 @@ contract QRNGConsumer is Ownable, RrpRequesterV0 {
     bytes32 private _endpointId;
     address private _sponsorWallet;
 
-    mapping(bytes32 requestId => address gameAddress) private _requestToGameAddress;
+    mapping(bytes32 requestId => address gameAddress) public requestToGameAddress;
 
     ////////////////
     // Events
@@ -53,7 +53,7 @@ contract QRNGConsumer is Ownable, RrpRequesterV0 {
     }
 
     function fulfillUint256(bytes32 requestId, bytes calldata data) external onlyAirnodeRrp {
-        address gameAddress = _requestToGameAddress[requestId];
+        address gameAddress = requestToGameAddress[requestId];
         if(gameAddress == address(0)) {
             revert GameDoesNotExist();
         }
@@ -80,7 +80,7 @@ contract QRNGConsumer is Ownable, RrpRequesterV0 {
             this.fulfillUint256.selector,
             "");
 
-        _requestToGameAddress[requestId] = gameAddress;
+        requestToGameAddress[requestId] = gameAddress;
         emit RequestedUint256(requestId);
     }
 
