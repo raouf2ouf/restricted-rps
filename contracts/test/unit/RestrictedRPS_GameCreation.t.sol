@@ -35,6 +35,7 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         assert(game.getDealer() == DEALER);
         assert(game.getInitialHash() == initialHash);
         assert(game.getDuration() == duration);
+        assert(game.getEnd() > block.timestamp && game.getEnd() <= (block.timestamp + (duration * 1 days)));
     }
 
     function test_GameCreationWithInsufficiantFunds() public {
@@ -111,9 +112,10 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         seedWithRNG(seed);
 
         address player = PLAYERS[0];
+        uint256 amount = restrictedRPSFactory.getBasicJoiningCost();
         vm.startPrank(player);
         uint8 playerId = game.joinGame{
-            value: restrictedRPSFactory.getBasicJoiningCost()
+            value: amount
         }("");
         vm.stopPrank();
 
@@ -128,6 +130,7 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         assert(playerState.nbrRockUsed == 0);
         assert(playerState.nbrPaperUsed == 0);
         assert(playerState.nbrScissorsUsed == 0);
+        assert(playerState.paidAmount == amount);
     }
 
     function test_JoiningGameWithInsufficiantFunds() public playersFunded(1) {

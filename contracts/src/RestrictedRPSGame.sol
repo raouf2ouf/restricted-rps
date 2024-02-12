@@ -16,6 +16,7 @@ contract RestrictedRPSGame is ISeedable {
     ///////////////////
     struct PlayerState {
         address player;
+        uint256 paidAmount;
         bytes32 encryptedHand;
         uint8 nbrStars;
         uint8 nbrStarsLocked;
@@ -43,8 +44,10 @@ contract RestrictedRPSGame is ISeedable {
     enum GameState {
         OPEN,
         WAITING_FOR_SEED,
+        COMPUTED_REWARDS,
         CLOSED,
-        INVALID
+        INVALID,
+        DEALER_AFK
     }
 
     enum MatchState {
@@ -89,7 +92,7 @@ contract RestrictedRPSGame is ISeedable {
     address private _dealer;
     bytes32 private _initialHash;
     uint256 private _seed;
-    uint256 private _startTimestamp;
+    uint256 private _endTimestamp;
     uint8 private _duration;
     uint8 private _nbrPlayers;
     GameState private _state;
@@ -122,6 +125,7 @@ contract RestrictedRPSGame is ISeedable {
     error RestrictedRPS_GameNotOpen();
     error RestrictedRPS_GameFull();
     error RestrictedRPS_CannotResetOpenGame();
+    error RestrictedRPS_ThereIsStillPlayersWithCards();
 
     error RestrictedRPS_SendMore();
 
@@ -203,6 +207,23 @@ contract RestrictedRPSGame is ISeedable {
     modifier isValidMatchId(uint8 matchId) {
         if (matchId >= _nbrMatches) {
             revert RestrictedRPS_InvalidMatchId();
+        }
+        _;
+    }
+
+    modifier isClosable() {
+        if(_state != GameState.OPEN) {
+            revert RestrictedRPS_GameNotOpen();
+        }
+        if(_endTimestamp > block.timestamp) {
+            if(_nbrPlayers == 6) {
+                PlayerState[6] memory players = _players ;
+                for(uint8 i; i < 6; i++) {
+                    if(players[i].nbrCards > 0) {
+                        revert RestrictedRPS_ThereIsStillPlayersWithCards();
+                    }
+                }
+            }
         }
         _;
     }
@@ -307,6 +328,10 @@ contract RestrictedRPSGame is ISeedable {
         );
     }
 
+    function getEnd() public view returns (uint256) {
+        return _endTimestamp;
+    }
+
     ///////////////////
     // Private Functions
     ///////////////////
@@ -326,6 +351,7 @@ contract RestrictedRPSGame is ISeedable {
         _duration = duration;
         _seed = 0;
         _state = GameState.WAITING_FOR_SEED;
+        _endTimestamp = block.timestamp + (duration * 1 days);
     }
 
     function _playCard(uint8 playerId, Card card) private {
@@ -376,9 +402,24 @@ contract RestrictedRPSGame is ISeedable {
         _players[player2Id].nbrStars += m.player1Bet;
     }
 
-    function _dealerCheated() private {}
+    function _dealerCheated() private {
+        // TODO
+    }
 
-    function _playerCheated(uint8 playerId) private {}
+    function _playerCheated(uint8 playerId) private {
+        // TODO
+    }
+
+    function _payPlayersTheirCollateral() private {
+        uint8 nbrPlayers = _nbrPlayers;
+        for(uint8 i; i < nbrPlayers; i++) {
+            PlayerState memory pState = _players[i];
+            uint256 amount = pState.paidAmount;
+            address playerAddress = pState.player;
+            _players[i].paidAmount = 0;
+            payable(playerAddress).transfer(amount);
+        }
+    }
 
     ///////////////////
     // External Functions
@@ -438,6 +479,7 @@ contract RestrictedRPSGame is ISeedable {
         PlayerState memory playerState;
         playerState.player = player;
         playerState.nbrStars = _NBR_STARS;
+        playerState.paidAmount = msg.value;
 
         // Join game
         _players[playerId] = playerState;
@@ -606,6 +648,16 @@ contract RestrictedRPSGame is ISeedable {
         emit MatchClosed(matchId, uint8(mstate));
     }
 
+
+    function closeGameDealerAFK() external {
+        if(_state != GameState.OPEN) {
+            revert RestrictedRPS_GameNotOpen();
+        }
+        if(block.timestamp >= (_endTimestamp + 1 days)) {
+            _payPlayersTheirCollateral();
+            _state = GameState.DEALER_AFK;
+        }
+    }
     function verifyDealerHonesty(
         bytes9 initialDeck,
         string memory secret
