@@ -35,6 +35,7 @@ export function useOpenGames(): string[] | undefined {
       refetch();
     },
   });
+  console.log(data);
 
   return data as string[] | undefined;
 }

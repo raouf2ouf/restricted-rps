@@ -436,7 +436,7 @@ contract RestrictedRPSGame is ISeedable {
         }
     }
 
-    function _computeRewardsForPlayer(int8 nbrCards, uint8 nbrStars) private returns (uint256 payout) {
+    function _computeRewardsForPlayer(int8 nbrCards, uint8 nbrStars) private view returns (uint256 payout) {
         if(nbrCards < 0) {
             return 0;
         }
@@ -516,7 +516,7 @@ contract RestrictedRPSGame is ISeedable {
         emit GameJoined(playerId, player, pub);
     }
 
-    function getSeed() external returns (uint256) {
+    function getSeed() external view returns (uint256) {
         return _seed;
     }
 

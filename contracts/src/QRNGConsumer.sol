@@ -33,7 +33,7 @@ contract QRNGConsumer is Ownable, RrpRequesterV0 {
     ////////////////
     // Construcor
     ////////////////
-    constructor(address airnodeRrp) Ownable() RrpRequesterV0(airnodeRrp) {}
+    constructor(address airnodeRrpAddress) Ownable() RrpRequesterV0(airnodeRrpAddress) {}
 
     ////////////////
     // External

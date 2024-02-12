@@ -87,23 +87,25 @@ contract RestrictedRPSFactory is QRNGConsumer {
     function getGames() external view returns (address[_NBR_GAMES] memory) {
         return _games;
     }
-    // function getOpenGames() public view returns (address[] memory) {
-    //     uint8 j;
-    //     for (uint8 i; i < _NBR_GAMES; i++) {
-    //         address adr = _games[i];
-    //         if (adr != address(0)) {
-    //             RestrictedRPSGame game = RestrictedRPSGame(adr);
-    //             if (game.isOpen()) {
-    //                 result[j] = adr;
-    //                 j++;
-    //                 if (j >= nbrOpenGames) {
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     return result;
-    // }
+    function getOpenGames() public view returns (address[] memory) {
+        address[] memory all = new address[](_NBR_GAMES);
+        uint8 j;
+        for (uint8 i; i < _NBR_GAMES; i++) {
+            address adr = _games[i];
+            if (adr != address(0)) {
+                RestrictedRPSGame game = RestrictedRPSGame(adr);
+                if (game.isOpen()) {
+                    all[j] = adr;
+                    j++;
+                }
+            }
+        }
+        address [] memory result = new address[](j);
+        for(uint8 i; i < j; i++) {
+            result[i] = all[i];
+        }
+        return result;
+    }
 
     function getBasicJoiningCost() public view returns (uint256) {
         return (_starCost * _NBR_STARS);
@@ -135,12 +137,12 @@ contract RestrictedRPSFactory is QRNGConsumer {
     function createGame(
         bytes32 initialHash,
         uint8 duration
-    ) external payable isNotBanned returns (uint8, address) {
+    ) external payable isNotBanned returns (uint8 gameId, address gameAddress) {
         if (msg.value < _gameCreationFee) {
             revert RestrictedRPSFactory_SendMore();
         }
-        uint8 gameId = (_lastGameId + 1) % _NBR_GAMES;
-        address gameAddress = _games[gameId];
+        gameId = (_lastGameId + 1) % _NBR_GAMES;
+        gameAddress = _games[gameId];
         if (address(gameAddress) != address(0)) {
             RestrictedRPSGame game = RestrictedRPSGame(gameAddress);
             if (game.getState() != RestrictedRPSGame.GameState.CLOSED) {
@@ -175,7 +177,6 @@ contract RestrictedRPSFactory is QRNGConsumer {
         _makeRequestUint256(gameAddress);
 
         emit GameCreated(gameId, gameAddress);
-        return (gameId, gameAddress);
     }
 
     function withdraw() external onlyOwner {

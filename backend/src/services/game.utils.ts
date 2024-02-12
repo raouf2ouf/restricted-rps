@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import { solidityPackedKeccak256 } from 'ethers';
+import { keccak256, solidityPackedKeccak256 } from 'ethers';
 
 export enum Card {
   ROCK = 0,
@@ -13,6 +13,29 @@ export function generateSecret(): string {
   const nbrCharacters: number = Math.floor(Math.random() * (10 - 6 + 1) + 6);
   const secret = randomBytes(nbrCharacters).toString('hex');
   return secret;
+}
+
+export function generateRandomNumberFromSeed(
+  seed: bigint,
+  range: number,
+): number {
+  return Number(
+    BigInt(solidityPackedKeccak256(['uint256'], [seed])) % BigInt(range),
+  );
+}
+
+export function shuffleDeckUsingSeed(initialDeck: string, seed: bigint) {
+  const deck = Buffer.from(initialDeck, 'hex');
+  for (let i = 35; i > 0; i--) {
+    const j: number = generateRandomNumberFromSeed(seed, i + 1);
+    // Swap
+    const cardI = getCard(deck, i);
+    const cardJ = getCard(deck, j);
+
+    setCard(deck, i, cardJ);
+    setCard(deck, j, cardI);
+  }
+  return deck;
 }
 
 export function generateShuffledDeck(): Buffer {

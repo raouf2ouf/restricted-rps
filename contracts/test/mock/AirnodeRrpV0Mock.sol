@@ -8,6 +8,8 @@ import {Ownable} from "@openzeppelin/contracts-v4/access/Ownable.sol";
 import {IAirnodeRrpV0} from "@api3/contracts/rrp/interfaces/IAirnodeRrpV0.sol";
 
 contract AirnodeRrpV0Mock is IAirnodeRrpV0 {
+    event fullfillMock(bool indexed, bytes indexed);
+
     function checkAuthorizationStatus(
         address[] calldata authorizers,
         address airnode,
@@ -94,6 +96,7 @@ contract AirnodeRrpV0Mock is IAirnodeRrpV0 {
         (callSuccess, callData) = fulfillAddressMock.call( // solhint-disable-line avoid-low-level-calls
             abi.encodeWithSelector(fulfillFunctionIdMock, requestIdMock, data)
         );
+        emit fullfillMock(callSuccess, callData);
     }
 
     function fail(

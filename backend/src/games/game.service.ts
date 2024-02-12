@@ -4,9 +4,10 @@ import {
   generateSecret,
   generateShuffledDeck,
   getPlayerCards,
+  shuffleDeckUsingSeed,
 } from '../services/game.utils';
 import { ContractsService } from '../services/contracts.service';
-import { Contract } from 'ethers';
+import { Contract, ZeroAddress, AbiCoder, ZeroHash } from 'ethers';
 import { Game, GameState, initGame } from 'src/entities/game.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -78,14 +79,14 @@ export class GameService {
     if (!gameWithContract) return;
     const { db: game, contract } = gameWithContract;
     if (!game) return;
-    const playerCards = getPlayerCards(
-      Buffer.from(game.initialDeck, 'hex'),
-      playerId,
-    );
+    // get the seed
+    const seed: bigint = await contract.getSeed();
+    // shuffle the deck using the seed;
+    const deck = shuffleDeckUsingSeed(game.initialDeck, seed);
+    const playerCards = getPlayerCards(deck, playerId);
     let encryptedMsg = encrypt(publicKey, playerCards);
-    // delay(1000);
     const tx = await contract.setPlayerHand(playerId, encryptedMsg);
-    const txReceipt = await tx.wait();
+    await tx.wait();
     console.log('player was given hand: ', playerCards);
   }
 
@@ -101,7 +102,9 @@ export class GameService {
       this.games.set(dbGame.address, { db: dbGame });
     }
 
+    console.log('getting open games');
     const chainGames: string[] = await this.contracts.factory.getOpenGames();
+    console.log('opengames', chainGames);
 
     for (const chainGameAddr of chainGames) {
       this.addGame(chainGameAddr);
@@ -126,9 +129,12 @@ export class GameService {
 
     const tx = await this.contracts.factory.createGame(hash, 1, { value: 1 });
     const txReceipt = await tx.wait();
-    console.log('receipt');
-    console.log(txReceipt);
-    const topics = txReceipt.logs[0].topics;
+    const logs = txReceipt.logs;
+    const eventFilter = await this.contracts.factory.filters
+      .GameCreated()
+      .getTopicFilter();
+    const eventLogs = logs.filter((log) => log.topics[0] === eventFilter[0]);
+    const topics = eventLogs[0].topics;
     const gameId = Number(BigInt(topics[1]));
     const gameAddress = '0x' + (topics[2] as string).substring(26);
     const game = initGame({
@@ -138,10 +144,35 @@ export class GameService {
       secret,
       address: gameAddress,
     });
-    console.log(game);
     const dbGame = await this.gamesRepository.save(game);
     this.games.set(gameAddress, { db: dbGame });
     this.addGame(gameAddress);
+
+    if (this.configService.CHAIN == 'FOUNDRY') {
+      console.log('trying to seed game');
+      const requestId = ZeroHash;
+      const airnode = ZeroAddress;
+      const fulfillAddress = ZeroAddress;
+      const fulfillFunctionId = '0x68795699';
+      const seed = AbiCoder.defaultAbiCoder().encode(['uint256'], [0x666]);
+      const signature = AbiCoder.defaultAbiCoder().encode(['uint8'], [0x0]);
+      const seedTx = await this.contracts.airnodeMock!.fulfill(
+        requestId,
+        airnode,
+        fulfillAddress,
+        fulfillFunctionId,
+        seed,
+        signature,
+      );
+      const seedReceipt = await seedTx.wait();
+      console.log(seedReceipt);
+      // const logs = seedReceipt.logs;
+      // console.log(seedReceipt);
+      const seedGame = await this.games.get(gameAddress).contract!.getSeed();
+      console.log('gameSeed: ', seedGame);
+      const gameState = await this.games.get(gameAddress).contract!.getState();
+      console.log('gameState: ', gameState);
+    }
     return gameAddress;
   }
 }

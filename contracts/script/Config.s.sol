@@ -1,7 +1,7 @@
 // SPDX-License-Indentifier: MIT
 pragma solidity >=0.8.2 <0.9.0;
 
-import {Script} from "forge-std/Script.sol";
+import {Script, console2} from "forge-std/Script.sol";
 import {AirnodeRrpV0Mock} from "../test/mock/AirnodeRrpV0Mock.sol";
 
 contract Config is Script {
@@ -18,6 +18,8 @@ contract Config is Script {
             activeNetworkConfig = getLightLinkTestConfig();
         } else {
             activeNetworkConfig = getOrCreateAnvilEthConfig();
+            console2.logString("On Anvil");
+            console2.logAddress(activeNetworkConfig.airdropNodeRrp);
         }
     }
 
@@ -25,7 +27,9 @@ contract Config is Script {
         public
         returns (NetworkConfig memory)
     {
+        vm.startBroadcast(vm.envUint("DEFAULT_ANVIL_PRIVATE_KEY"));
         AirnodeRrpV0Mock airnodeMock = new AirnodeRrpV0Mock();
+        vm.stopBroadcast();
         return
             NetworkConfig({
                 deployerKey: vm.envUint("DEFAULT_ANVIL_PRIVATE_KEY"),
