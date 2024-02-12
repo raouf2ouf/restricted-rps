@@ -30,11 +30,10 @@ contract RestrictedRPSFactory is QRNGConsumer {
     uint8 private constant _NBR_CARDS_PER_BYTE = 8 / _NBR_BITS_PER_CARD;
 
     uint256 private _gameCreationFee = 1; // 0
-    uint8 private _winningsCut = 1; // 0.001 (0.1%) 100% is 1000
+    uint8 private _winningsCut = 1; // per 1000
     uint256 private _starCost = 1e13; // 0.00001
     uint256 private _m1CachCost = 1e13; // 0.00001
 
-    uint8 private _nbrOpenGames;
 
     /// @dev Mapping of banned players
     mapping(address player => bool banned) private _banned;
@@ -88,25 +87,23 @@ contract RestrictedRPSFactory is QRNGConsumer {
     function getGames() external view returns (address[_NBR_GAMES] memory) {
         return _games;
     }
-    function getOpenGames() public view returns (address[] memory) {
-        uint8 nbrOpenGames = _nbrOpenGames;
-        address[] memory result = new address[](nbrOpenGames);
-        uint8 j;
-        for (uint8 i; i < _NBR_GAMES; i++) {
-            address adr = _games[i];
-            if (adr != address(0)) {
-                RestrictedRPSGame game = RestrictedRPSGame(adr);
-                if (game.isOpen()) {
-                    result[j] = adr;
-                    j++;
-                    if (j >= nbrOpenGames) {
-                        break;
-                    }
-                }
-            }
-        }
-        return result;
-    }
+    // function getOpenGames() public view returns (address[] memory) {
+    //     uint8 j;
+    //     for (uint8 i; i < _NBR_GAMES; i++) {
+    //         address adr = _games[i];
+    //         if (adr != address(0)) {
+    //             RestrictedRPSGame game = RestrictedRPSGame(adr);
+    //             if (game.isOpen()) {
+    //                 result[j] = adr;
+    //                 j++;
+    //                 if (j >= nbrOpenGames) {
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return result;
+    // }
 
     function getBasicJoiningCost() public view returns (uint256) {
         return (_starCost * _NBR_STARS);
@@ -173,7 +170,6 @@ contract RestrictedRPSFactory is QRNGConsumer {
             _games[gameId] = gameAddress;
         }
         _lastGameId = gameId;
-        _nbrOpenGames++;
 
         // Ask for seed
         _makeRequestUint256(gameAddress);
@@ -181,9 +177,14 @@ contract RestrictedRPSFactory is QRNGConsumer {
         emit GameCreated(gameId, gameAddress);
         return (gameId, gameAddress);
     }
-    function verifyAndCloseGame() external {
-        // TODO
-        _nbrOpenGames--;
+
+    function withdraw() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+
+    function withdrawGameCut(uint8 gameId) external onlyOwner {
+        RestrictedRPSGame game = RestrictedRPSGame(_games[gameId]);
+        game.withdraw();
     }
 
     ////////////////
@@ -197,10 +198,11 @@ contract RestrictedRPSFactory is QRNGConsumer {
     }
 
     function getCard(bytes9 deck, uint8 index) public pure returns (uint8) {
-        uint8 shiftAmount = uint8(
+        uint8 byteOffset = 8 - index / _NBR_CARDS_PER_BYTE;
+        uint8 bitOffset = uint8(
             (index % _NBR_CARDS_PER_BYTE) * _NBR_BITS_PER_CARD
         );
-        return uint8((uint72(deck) >> shiftAmount) & 0x03);
+        return (uint8(deck[byteOffset]) >> bitOffset) & 0x03;
     }
 
     function setCard(
@@ -208,12 +210,12 @@ contract RestrictedRPSFactory is QRNGConsumer {
         uint8 index,
         uint8 card
     ) public pure returns (bytes9) {
-        uint8 shiftAmount = uint8(
-            (index % _NBR_CARDS_PER_BYTE) * _NBR_BITS_PER_CARD
+        uint8 bitOffset = uint8(
+            index * _NBR_BITS_PER_CARD
         );
         // clear existing bits
-        deck &= ~(bytes9(uint72(0x03)) << shiftAmount);
-        deck |= bytes9(uint72(card)) << shiftAmount;
+        deck &= ~(bytes9(0x000000000000000003) << (bitOffset));
+        deck |= bytes9(uint72(card)) << bitOffset;
         return deck;
     }
 

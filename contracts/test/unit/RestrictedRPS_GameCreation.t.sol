@@ -124,13 +124,13 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         );
 
         assert(playerState.player == player);
-        assert(playerState.encryptedHand == 0x0);
         assert(playerState.nbrStars == NBR_STARS);
         assert(playerState.nbrStarsLocked == 0);
         assert(playerState.nbrRockUsed == 0);
         assert(playerState.nbrPaperUsed == 0);
         assert(playerState.nbrScissorsUsed == 0);
         assert(playerState.paidAmount == amount);
+        assert(playerState.cheated == false);
     }
 
     function test_JoiningGameWithInsufficiantFunds() public playersFunded(1) {

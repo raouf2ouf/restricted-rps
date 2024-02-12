@@ -61,27 +61,34 @@ contract TestUtils is Test {
     function createGameWithPlayers(
         uint8 nbrPlayers,
         uint8 duration
-    ) public playersFunded(nbrPlayers) returns (RestrictedRPSGame game) {
+    ) public playersFunded(nbrPlayers) returns (RestrictedRPSGame) {
         bytes9 deck = generateDeck();
+        return createGameWithPlayersGivenInitialDeck(deck, nbrPlayers, duration);
+    }
+
+    function createGameWithPlayersGivenInitialDeck(bytes9 deck, uint8 nbrPlayers, uint8 duration) public  playersFunded(nbrPlayers)  returns (RestrictedRPSGame game) {
         bytes32 initialHash = hashDeck(deck, "secret");
         (uint8 gameId, ) = createGame(initialHash, duration, GAME_CREATION_FEE);
         uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
 
         game = RestrictedRPSGame(restrictedRPSFactory.getGame(gameId));
 
-        seedWithRNG(123456);
+        seedWithRNG(666);
 
         for (uint8 i; i < nbrPlayers; i++) {
             vm.prank(PLAYERS[i]);
             game.joinGame{value: joiningCost}("");
+            vm.prank(DEALER);
+            game.setPlayerHand(i, bytes(""));
         }
+
     }
 
     function generateDeck() public pure returns (bytes9) {
         bytes9 deck;
         for (uint8 i; i < 36; i++) {
             uint8 card = uint8(i % 3);
-            uint8 shiftAmount = uint8((i % 4) * 2);
+            uint8 shiftAmount = uint8(i * 2);
             deck |= bytes9(uint72(card)) << shiftAmount;
         }
         return deck;

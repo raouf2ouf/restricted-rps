@@ -17,7 +17,7 @@ contract RestrictedRPSGame is ISeedable {
     struct PlayerState {
         address player;
         uint256 paidAmount;
-        bytes32 encryptedHand;
+        uint256 rewards;
         uint8 nbrStars;
         uint8 nbrStarsLocked;
         int8 nbrCards;
@@ -28,6 +28,7 @@ contract RestrictedRPSGame is ISeedable {
         int8 initialNbrRocks; // int8 rather than uint8 to avoid cast
         int8 initialNbrPapers;
         int8 initialNbrScissors;
+        bool cheated;
     }
 
     struct Match {
@@ -44,10 +45,10 @@ contract RestrictedRPSGame is ISeedable {
     enum GameState {
         OPEN,
         WAITING_FOR_SEED,
+        DEALER_CHEATED,
+        DEALER_HONESTY_PROVEN,
         COMPUTED_REWARDS,
-        CLOSED,
-        INVALID,
-        DEALER_AFK
+        CLOSED
     }
 
     enum MatchState {
@@ -85,9 +86,9 @@ contract RestrictedRPSGame is ISeedable {
     uint8 private immutable _gameId;
 
     // State
-    uint8 private _winningsCut = 10;
-    uint256 private _starCost = 1;
-    uint256 private _m1CashCost = 1e14; // 0.0001
+    uint8 private _winningsCut;
+    uint256 private _starCost;
+    uint256 private _m1CashCost;
 
     address private _dealer;
     bytes32 private _initialHash;
@@ -123,9 +124,9 @@ contract RestrictedRPSGame is ISeedable {
     error RestrictedRPS_OnlyFactory();
 
     error RestrictedRPS_GameNotOpen();
+    error RestrictedRPS_GameNotClosed();
     error RestrictedRPS_GameFull();
     error RestrictedRPS_CannotResetOpenGame();
-    error RestrictedRPS_ThereIsStillPlayersWithCards();
 
     error RestrictedRPS_SendMore();
 
@@ -146,8 +147,12 @@ contract RestrictedRPSGame is ISeedable {
     error RestrictedRPS_WrongCardHash();
     error RestrictedRPS_PlayerHasOfferedTooManyMatches();
     error RestrictedRPS_NotEnoughAvailableStars();
+    error RestrictedRPS_CannotAnswerYourOwnMatch();
 
     error RestrictedRPS_NotExpectingSeed();
+    error RestrictedRPS_DealerHonestyNotYetProven();
+    error RestrictedRPS_ThereIsStillPlayersWithCards();
+    error RestrictedRPS_GameNotClosable();
 
     ///////////////////
     // Constructor
@@ -258,6 +263,10 @@ contract RestrictedRPSGame is ISeedable {
 
     function getBasicJoiningCost() public view returns (uint256) {
         return (_starCost * _NBR_STARS);
+    }
+
+    function getStarCost() public view returns (uint256) {
+        return _starCost;
     }
 
     function getPlayerState(
@@ -402,13 +411,6 @@ contract RestrictedRPSGame is ISeedable {
         _players[player2Id].nbrStars += m.player1Bet;
     }
 
-    function _dealerCheated() private {
-        // TODO
-    }
-
-    function _playerCheated(uint8 playerId) private {
-        // TODO
-    }
 
     function _payPlayersTheirCollateral() private {
         uint8 nbrPlayers = _nbrPlayers;
@@ -419,6 +421,32 @@ contract RestrictedRPSGame is ISeedable {
             _players[i].paidAmount = 0;
             payable(playerAddress).transfer(amount);
         }
+    }
+
+    function _payPlayersTheirRewards() private {
+        uint8 nbrPlayers = _nbrPlayers;
+        for(uint8 i; i < nbrPlayers; i++) {
+            PlayerState memory pState = _players[i];
+            uint256 amount = pState.rewards;
+            address playerAddress = pState.player;
+            _players[i].rewards = 0;
+            if(amount > 0) {
+                payable(playerAddress).transfer(amount);
+            }
+        }
+    }
+
+    function _computeRewardsForPlayer(int8 nbrCards, uint8 nbrStars) private returns (uint256 payout) {
+        if(nbrCards < 0) {
+            return 0;
+        }
+        if(nbrCards != 0) { // player still has cards, limit payout to 4
+            if(nbrStars > 4) {
+                nbrStars = 4;
+            }
+        }
+        uint256 pay = nbrStars * _starCost; 
+        payout = (pay * (1000 - _winningsCut)) / 1000;
     }
 
     ///////////////////
@@ -432,7 +460,7 @@ contract RestrictedRPSGame is ISeedable {
         bytes32 initialHash,
         uint8 duration
     ) external onlyFactory {
-        if (_state == GameState.OPEN) {
+        if (_state != GameState.CLOSED) {
             revert RestrictedRPS_CannotResetOpenGame();
         }
         _nbrMatches = 0;
@@ -576,6 +604,9 @@ contract RestrictedRPSGame is ISeedable {
         }
         uint8 playerId = uint8(id);
         Match storage m = _matches[matchId];
+        if (playerId == m.player1) {
+            revert RestrictedRPS_CannotAnswerYourOwnMatch();
+        }
         if (m.result != MatchState.UNDECIDED) {
             revert RestrictedRPS_MatchAlreadyPlayed();
         }
@@ -649,19 +680,12 @@ contract RestrictedRPSGame is ISeedable {
     }
 
 
-    function closeGameDealerAFK() external {
-        if(_state != GameState.OPEN) {
-            revert RestrictedRPS_GameNotOpen();
-        }
-        if(block.timestamp >= (_endTimestamp + 1 days)) {
-            _payPlayersTheirCollateral();
-            _state = GameState.DEALER_AFK;
-        }
-    }
+
+
     function verifyDealerHonesty(
         bytes9 initialDeck,
         string memory secret
-    ) public onlyDealer returns (bool) {
+    ) external onlyDealer returns (bool) {
         bytes32 hashedDeck = keccak256(
             bytes.concat(initialDeck, bytes(secret))
         );
@@ -671,6 +695,7 @@ contract RestrictedRPSGame is ISeedable {
 
         if (!_factory.isValidDeck(initialDeck)) {
             // TODO Dealer Cheated!!!!!
+            _state = GameState.DEALER_CHEATED;
             emit DealerCheated(_dealer);
             return false;
         }
@@ -687,35 +712,70 @@ contract RestrictedRPSGame is ISeedable {
             );
             _players[i].initialNbrRocks = cards[0];
             _players[i].initialNbrPapers = cards[1];
-            _players[i].initialNbrScissors = cards[1];
+            _players[i].initialNbrScissors = cards[2];
         }
 
+        _state = GameState.DEALER_HONESTY_PROVEN;
         return true;
     }
 
-    function verifyPlayerHonesty(
-        uint8 playerId
-    ) public isValidPlayerId(playerId) returns (bool) {
+    function computeRewards() external {
+        if(_state != GameState.DEALER_HONESTY_PROVEN) {
+            revert RestrictedRPS_DealerHonestyNotYetProven();
+        }
+        uint8 nbrPlayers = _nbrPlayers;
+        uint8 nbrPlayersWhoCheated;
+        for(uint8 i; i < nbrPlayers; i++) {
+            PlayerState memory playerState = _players[i];
+            if (
+                (playerState.nbrCards < 0) ||
+                (playerState.nbrRockUsed > playerState.initialNbrRocks) ||
+                (playerState.nbrPaperUsed > playerState.initialNbrPapers) ||
+                (playerState.nbrScissorsUsed > playerState.initialNbrScissors)
+            ) {
+                emit PlayerCheated(playerState.player);
+                nbrPlayersWhoCheated++;
+                _players[i].cheated = true;
+            } else {
+                _players[i].rewards = _computeRewardsForPlayer(playerState.nbrCards, playerState.nbrStars); 
+            }
+        }
+        if(nbrPlayersWhoCheated > 0) { // some players have cheated, give everyone his collateral back
+            for(uint8 i; i < nbrPlayers; i++) {
+                PlayerState memory playerState = _players[i];
+                if (!playerState.cheated) {
+                    _players[i].rewards = playerState.paidAmount; 
+                }
+            }
+        }
+        _state = GameState.COMPUTED_REWARDS;
+    }
+
+
+    function computeCurrentRewardsForPlayer(uint8 playerId) public isValidPlayerId(playerId) returns (uint256 payout) {
         PlayerState memory playerState = _players[playerId];
-        if (
-            (playerState.nbrRockUsed > playerState.initialNbrRocks) ||
-            (playerState.nbrPaperUsed > playerState.initialNbrPapers) ||
-            (playerState.nbrScissorsUsed > playerState.initialNbrScissors)
-        ) {
-            // TODO
-            emit PlayerCheated(playerState.player);
-            return false;
-        }
-        return true;
+        int8 nbrCards = playerState.nbrCards;
+        uint8 nbrStars = playerState.nbrStars;
+        payout = _computeRewardsForPlayer(nbrCards, nbrStars);
     }
 
-    function verifyPlayersHonesty() public {
-        for (uint8 i; i < _nbrPlayers; i++) {
-            verifyPlayerHonesty(i);
+    function closeGame() external {
+        GameState state = _state;
+        if(state == GameState.DEALER_CHEATED || (state == GameState.OPEN && block.timestamp >= (_endTimestamp + 1 days))) {
+            _payPlayersTheirCollateral();
+            _state = GameState.CLOSED;
+        } else if(_state == GameState.COMPUTED_REWARDS) {
+            _payPlayersTheirRewards();
+            _state = GameState.CLOSED;
+        } else {
+            revert RestrictedRPS_GameNotClosable();
         }
     }
 
-    function verifyGame() external {
-        // TODO
+    function withdraw() external onlyFactory() {
+        if(_state != GameState.CLOSED) {
+            revert RestrictedRPS_GameNotClosed();
+        }
+        payable(address(_factory)).transfer(address(this).balance);
     }
 }
