@@ -32,7 +32,7 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
             1,
             2
         );
-        RestrictedRPSGame.Match memory m = game.getMatch(matchId);
+        RestrictedRPSGame.Match memory m = game.getMatches()[matchId];
         RestrictedRPSGame.PlayerState memory playerState = game.getPlayerState(
             0
         );
@@ -63,7 +63,7 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         // cancel match
         vm.prank(player1);
         game.cancelMatch(matchId);
-        RestrictedRPSGame.Match memory m = game.getMatch(matchId);
+        RestrictedRPSGame.Match memory m = game.getMatches()[matchId];
         RestrictedRPSGame.PlayerState memory playerState = game.getPlayerState(
             0
         );
@@ -120,7 +120,7 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         vm.prank(player2);
         game.answerMatch(matchId, RestrictedRPSGame.Card.ROCK);
 
-        RestrictedRPSGame.Match memory m = game.getMatch(matchId);
+        RestrictedRPSGame.Match memory m = game.getMatches()[matchId];
         RestrictedRPSGame.PlayerState memory playerState = game.getPlayerState(
             1
         );
@@ -138,7 +138,7 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         uint8 p1Bet = 1;
         uint8 p2Bet = 2;
         uint8 matchId = offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.ROCK), "secret", p1Bet, p2Bet);
-        RestrictedRPSGame.Match memory m = game.getMatch(matchId);
+        RestrictedRPSGame.Match memory m = game.getMatches()[matchId];
         RestrictedRPSGame.PlayerState memory p1State = game.getPlayerState(0);
         RestrictedRPSGame.PlayerState memory p2State = game.getPlayerState(1);
 
@@ -159,7 +159,7 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         uint8 p1Bet = 1;
         uint8 p2Bet = 2;
         uint8 matchId = offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", p1Bet, p2Bet);
-        RestrictedRPSGame.Match memory m = game.getMatch(matchId);
+        RestrictedRPSGame.Match memory m = game.getMatches()[matchId];
         RestrictedRPSGame.PlayerState memory p1State = game.getPlayerState(0);
         RestrictedRPSGame.PlayerState memory p2State = game.getPlayerState(1);
 
@@ -180,7 +180,7 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         uint8 p1Bet = 1;
         uint8 p2Bet = 2;
         uint8 matchId = offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.PAPER), "secret", p1Bet, p2Bet);
-        RestrictedRPSGame.Match memory m = game.getMatch(matchId);
+        RestrictedRPSGame.Match memory m = game.getMatches()[matchId];
         RestrictedRPSGame.PlayerState memory p1State = game.getPlayerState(0);
         RestrictedRPSGame.PlayerState memory p2State = game.getPlayerState(1);
 

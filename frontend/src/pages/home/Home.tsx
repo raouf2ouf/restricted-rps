@@ -70,20 +70,22 @@ const HomePage: React.FC = () => {
                 by the blockchain at the end of game]. You start by joining a
                 game and providing a <em>collateral</em> for which you will
                 recieve:
-                <ol>
-                  <li>
-                    <em>6 cards: </em> a collection of Rock, Paper, Scissors
-                    cards that are only known to you!
-                  </li>
-                  <li>
-                    <em>3 stars: </em> used to bet when you play a card. They
-                    are redeemable for collateral at the end of the game.
-                  </li>
-                  <li>
-                    <em>In-game Cash: </em> used to buy and sell cards. You can
-                    only redeem stars if you have no cards in you hand!
-                  </li>
-                </ol>
+              </p>
+              <ol>
+                <li>
+                  <em>6 cards: </em> a collection of Rock, Paper, Scissors cards
+                  that are only known to you!
+                </li>
+                <li>
+                  <em>3 stars: </em> used to bet when you play a card. They are
+                  redeemable for collateral at the end of the game.
+                </li>
+                <li>
+                  <em>In-game Cash: </em> used to buy and sell cards. You can
+                  only redeem stars if you have no cards in you hand!
+                </li>
+              </ol>
+              <p>
                 After which you can <em>offer</em> or <em>answer</em> a match: a
                 match is offered by placing a hidden card and a bet (number of
                 stars). Other players can answer your match by placing a card
@@ -95,27 +97,25 @@ const HomePage: React.FC = () => {
               How to win [or lose]
             </IonLabel>
             <div className="content">
-              <p>
-                <ul>
-                  <li>
-                    You <em>win a game</em> when you have{" "}
-                    <em>at least 3 stars </em>
-                    and <em>no cards</em> at the end of the game. For each star
-                    above 3 you will recieve additional collateral.
-                  </li>
-                  <li>
-                    You <em>lose a game </em>
-                    when you have <em>less than 3 stars</em> at the end of the
-                    game (you will still recieve part of your collateral for
-                    each star you have).
-                  </li>
-                  <li>
-                    You <em>draw a game</em> when you have more than 3 stars and
-                    at <em>least 1 card</em>. You will only recieve the
-                    collateral you used.
-                  </li>
-                </ul>
-              </p>
+              <ul>
+                <li>
+                  You <em>win a game</em> when you have{" "}
+                  <em>at least 3 stars </em>
+                  and <em>no cards</em> at the end of the game. For each star
+                  above 3 you will recieve additional collateral.
+                </li>
+                <li>
+                  You <em>lose a game </em>
+                  when you have <em>less than 3 stars</em> at the end of the
+                  game (you will still recieve part of your collateral for each
+                  star you have).
+                </li>
+                <li>
+                  You <em>draw a game</em> when you have more than 3 stars and
+                  at <em>least 1 card</em>. You will only recieve the collateral
+                  you used.
+                </li>
+              </ul>
             </div>
             <IonLabel className="subsection-title">
               Strategies and How to understand the UI

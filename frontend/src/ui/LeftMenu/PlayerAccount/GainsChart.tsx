@@ -5,38 +5,39 @@ import { IonBackdrop, IonSpinner } from "@ionic/react";
 
 import "./GainsChart.scss";
 import Chart from "$ui/components/Chart/Chart";
+import { History } from "$models/History";
+import { wTe } from "$contracts/index";
+import { getHistory } from "src/api/server";
+import { useAccount } from "wagmi";
+import { useAppSelector } from "$store/store";
+import { selectAllHistories } from "$store/histories.slice";
 interface Props {}
 
-function getRandom(min: number, max: number): number {
-  return Math.random() * (max - min) + min;
-}
-
-function generateData(nbr: number): number[][] {
+function buildData(histories: History[]): number[][] {
   const data: number[][] = [];
-  let previous: number = 0;
-  for (let i = 0; i < nbr; i++) {
-    previous += getRandom(-0.08, +0.09);
-    if (previous > 1) {
-      previous = 0.94;
-    }
-    data.push([i, previous]);
+  for (let i = 0; i < histories.length; i++) {
+    const history = histories[i];
+    const n = wTe(BigInt(history.rewards) - BigInt(history.paidAmount));
+    data.push([i, n]);
   }
   return data;
 }
-const DATA = generateData(11);
 
 const GainsChart: React.FC<Props> = ({}) => {
-  const data = DATA;
+  const { address } = useAccount();
 
   const loading: boolean = false;
   const [option, setOption] = useState<EChartsOption>(GainsChartOption);
+  const history = useAppSelector((state) => selectAllHistories(state));
 
   useEffect(() => {
+    if (history.length == 0) return;
     let op: EChartsOption = { ...GainsChartOption };
+    const data = buildData(history);
     //@ts-ignore
     op.series[0].data = data;
     setOption({ ...op });
-  }, [data]);
+  }, [history]);
 
   return (
     <div className="gains-chart-container">

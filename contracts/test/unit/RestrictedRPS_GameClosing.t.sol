@@ -23,6 +23,7 @@ contract RestrictedRPS_GameClosingTest is TestUtils {
         vm.warp(block.timestamp + (duration * 1 days) + 1 days);
         vm.prank(PLAYERS[6]);
         game.closeGame();
+        game.payPlayers();
        
         for(uint8 i; i < 6; i++) {
             assert((balances[i] + joiningCost) == PLAYERS[i].balance);
@@ -47,6 +48,7 @@ contract RestrictedRPS_GameClosingTest is TestUtils {
         vm.warp(block.timestamp + (duration * 1 days) + 1 days);
         vm.prank(PLAYERS[6]);
         game.closeGame();
+        game.payPlayers();
        
         for(uint8 i; i < 6; i++) {
             assert((balances[i] + joiningCost) == PLAYERS[i].balance);
@@ -97,11 +99,10 @@ contract RestrictedRPS_GameClosingTest is TestUtils {
         vm.prank(DEALER);
         game.verifyDealerHonesty(initialDeck, "secret");
 
-        RestrictedRPSGame.PlayerState[] memory pstates = game.getPlayersState();
-
         game.computeRewards();
 
         game.closeGame();
+        game.payPlayers();
 
         uint256 p1W = 5 * game.getStarCost();
         p1W = (p1W * (1000 - 1)) / 1000;
@@ -134,11 +135,10 @@ contract RestrictedRPS_GameClosingTest is TestUtils {
         vm.prank(DEALER);
         game.verifyDealerHonesty(initialDeck, "secret");
 
-        RestrictedRPSGame.PlayerState[] memory pstates = game.getPlayersState();
-
         game.computeRewards();
 
         game.closeGame();
+        game.payPlayers();
 
         assert((player1Balance) == PLAYERS[0].balance); // player 1 cheated
         assert((player2Balance + joiningCost) == PLAYERS[1].balance);
@@ -167,9 +167,8 @@ contract RestrictedRPS_GameClosingTest is TestUtils {
         vm.prank(DEALER);
         game.verifyDealerHonesty(initialDeck, "secret");
 
-        RestrictedRPSGame.PlayerState[] memory pstates = game.getPlayersState();
-
         game.closeGame();
+        game.payPlayers();
 
         assert((player1Balance + joiningCost) == PLAYERS[0].balance);
         assert((player2Balance + joiningCost) == PLAYERS[1].balance);

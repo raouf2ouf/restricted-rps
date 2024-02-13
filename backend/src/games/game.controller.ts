@@ -23,9 +23,9 @@ export class GameController {
     return txReceipt;
   }
 
-  //   @Get('get-game/:id')
-  //   async getGame(@Param('id') id: number) {
-  //     console.log(id);
-  //     return this.game.getGame(id);
-  //   }
+  @Get('history/:address')
+  async getGame(@Param('address') address: string) {
+    const histories = await this.game.getHistory(address);
+    return histories;
+  }
 }

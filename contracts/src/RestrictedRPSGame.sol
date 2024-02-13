@@ -18,6 +18,7 @@ contract RestrictedRPSGame is ISeedable {
         address player;
         uint256 paidAmount;
         uint256 rewards;
+        uint256 amountToPay;
         uint8 nbrStars;
         uint8 nbrStarsLocked;
         int8 nbrCards;
@@ -118,6 +119,9 @@ contract RestrictedRPSGame is ISeedable {
     event PlayerCheated(address indexed);
     event DealerCheated(address indexed);
 
+    event GameClosed(uint8 indexed state);
+    event ComputedRewards();
+
     ///////////////////
     // Errors
     ///////////////////
@@ -151,8 +155,8 @@ contract RestrictedRPSGame is ISeedable {
 
     error RestrictedRPS_NotExpectingSeed();
     error RestrictedRPS_DealerHonestyNotYetProven();
-    error RestrictedRPS_ThereIsStillPlayersWithCards();
     error RestrictedRPS_GameNotClosable();
+    error RestrictedRPS_GameNotReadyToVerify();
 
     ///////////////////
     // Constructor
@@ -216,19 +220,9 @@ contract RestrictedRPSGame is ISeedable {
         _;
     }
 
-    modifier isClosable() {
-        if(_state != GameState.OPEN) {
-            revert RestrictedRPS_GameNotOpen();
-        }
-        if(_endTimestamp > block.timestamp) {
-            if(_nbrPlayers == 6) {
-                PlayerState[6] memory players = _players ;
-                for(uint8 i; i < 6; i++) {
-                    if(players[i].nbrCards > 0) {
-                        revert RestrictedRPS_ThereIsStillPlayersWithCards();
-                    }
-                }
-            }
+    modifier isClosed() {
+        if(_state != GameState.CLOSED) {
+            revert RestrictedRPS_GameNotClosed();
         }
         _;
     }
@@ -297,11 +291,11 @@ contract RestrictedRPSGame is ISeedable {
         }
     }
 
-    function getMatch(
-        uint8 matchId
-    ) external view isValidMatchId(matchId) returns (Match memory) {
-        return _matches[matchId];
-    }
+    // function getMatch(
+    //     uint8 matchId
+    // ) external view isValidMatchId(matchId) returns (Match memory) {
+    //     return _matches[matchId];
+    // }
 
     function getMatches() external view returns (Match[] memory) {
         uint8 nbrMatches = _nbrMatches;
@@ -415,24 +409,14 @@ contract RestrictedRPSGame is ISeedable {
     function _payPlayersTheirCollateral() private {
         uint8 nbrPlayers = _nbrPlayers;
         for(uint8 i; i < nbrPlayers; i++) {
-            PlayerState memory pState = _players[i];
-            uint256 amount = pState.paidAmount;
-            address playerAddress = pState.player;
-            _players[i].paidAmount = 0;
-            payable(playerAddress).transfer(amount);
+            _players[i].amountToPay = _players[i].paidAmount;
         }
     }
 
     function _payPlayersTheirRewards() private {
         uint8 nbrPlayers = _nbrPlayers;
         for(uint8 i; i < nbrPlayers; i++) {
-            PlayerState memory pState = _players[i];
-            uint256 amount = pState.rewards;
-            address playerAddress = pState.player;
-            _players[i].rewards = 0;
-            if(amount > 0) {
-                payable(playerAddress).transfer(amount);
-            }
+            _players[i].amountToPay = _players[i].rewards;
         }
     }
 
@@ -680,12 +664,32 @@ contract RestrictedRPSGame is ISeedable {
     }
 
 
+    function isReadyToVerify() public view returns(bool) {
+        if(_state != GameState.OPEN) {
+            return false;
+        }
+        if(_endTimestamp > block.timestamp) {
+            if(_nbrPlayers == 6) {
+                PlayerState[6] memory players = _players ;
+                for(uint8 i; i < 6; i++) {
+                    if(players[i].nbrCards > 0) {
+                        return false; //there is still players with cards
+                    }
+                }
+            }
+        }
+        return true;
+    }
 
 
     function verifyDealerHonesty(
         bytes9 initialDeck,
         string memory secret
     ) external onlyDealer returns (bool) {
+        bool ready = isReadyToVerify();
+        if(!ready) {
+            revert RestrictedRPS_GameNotReadyToVerify();
+        }
         bytes32 hashedDeck = keccak256(
             bytes.concat(initialDeck, bytes(secret))
         );
@@ -719,6 +723,7 @@ contract RestrictedRPSGame is ISeedable {
         return true;
     }
 
+
     function computeRewards() external {
         if(_state != GameState.DEALER_HONESTY_PROVEN) {
             revert RestrictedRPS_DealerHonestyNotYetProven();
@@ -749,33 +754,46 @@ contract RestrictedRPSGame is ISeedable {
             }
         }
         _state = GameState.COMPUTED_REWARDS;
+        emit ComputedRewards();
     }
 
 
-    function computeCurrentRewardsForPlayer(uint8 playerId) public isValidPlayerId(playerId) returns (uint256 payout) {
+    function computeCurrentRewardsForPlayer(uint8 playerId) public view isValidPlayerId(playerId) returns (uint256 payout) {
         PlayerState memory playerState = _players[playerId];
         int8 nbrCards = playerState.nbrCards;
         uint8 nbrStars = playerState.nbrStars;
         payout = _computeRewardsForPlayer(nbrCards, nbrStars);
     }
 
+
     function closeGame() external {
         GameState state = _state;
         if(state == GameState.DEALER_CHEATED || (state == GameState.OPEN && block.timestamp >= (_endTimestamp + 1 days))) {
             _payPlayersTheirCollateral();
             _state = GameState.CLOSED;
+            emit GameClosed(uint8(state));
         } else if(_state == GameState.COMPUTED_REWARDS) {
             _payPlayersTheirRewards();
             _state = GameState.CLOSED;
+            emit GameClosed(uint8(state));
         } else {
             revert RestrictedRPS_GameNotClosable();
         }
     }
 
-    function withdraw() external onlyFactory() {
-        if(_state != GameState.CLOSED) {
-            revert RestrictedRPS_GameNotClosed();
+    function payPlayers() external isClosed {
+        uint8 nbrPlayers = _nbrPlayers;
+        for(uint8 i; i < nbrPlayers; i++) {
+            uint256 amount = _players[i].amountToPay;
+            address playerAddress = _players[i].player;
+            if(amount > 0) {
+                _players[i].amountToPay = 0;
+                payable(playerAddress).transfer(amount);
+            }
         }
+    }
+
+    function withdraw() external isClosed onlyFactory() {
         payable(address(_factory)).transfer(address(this).balance);
     }
 }

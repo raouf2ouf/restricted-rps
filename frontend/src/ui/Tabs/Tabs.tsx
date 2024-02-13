@@ -6,7 +6,12 @@ import {
   IonTabButton,
   IonTabs,
 } from "@ionic/react";
-import { extensionPuzzleSharp, homeSharp, walletSharp } from "ionicons/icons";
+import {
+  extensionPuzzleSharp,
+  homeSharp,
+  statsChartSharp,
+  walletSharp,
+} from "ionicons/icons";
 import { ReactNode, memo } from "react";
 import { Redirect, Route } from "react-router";
 
@@ -15,9 +20,10 @@ type Props = {
   play: ReactNode;
   matches: ReactNode;
   offers: ReactNode;
+  history: ReactNode;
 };
 
-const Tabs: React.FC<Props> = ({ home, play, matches, offers }) => {
+const Tabs: React.FC<Props> = ({ home, play, matches, offers, history }) => {
   return (
     <IonTabs>
       <IonRouterOutlet>
@@ -25,7 +31,8 @@ const Tabs: React.FC<Props> = ({ home, play, matches, offers }) => {
         <Route path="/home" render={() => home} />
         <Route path="/play" render={() => play} />
         <Route path="/matches" render={() => matches} />
-        <Route path="/offers" render={() => offers} />
+        {/* <Route path="/offers" render={() => offers} /> */}
+        <Route path="/history" render={() => history} />
       </IonRouterOutlet>
       <IonTabBar slot="bottom">
         <IonTabButton tab="home" href="/home">
@@ -40,9 +47,13 @@ const Tabs: React.FC<Props> = ({ home, play, matches, offers }) => {
           <IonIcon icon={extensionPuzzleSharp} />
           <IonLabel>Matches</IonLabel>
         </IonTabButton>
-        <IonTabButton tab="offers" href="/offers">
+        {/* <IonTabButton tab="offers" href="/offers" disabled>
           <IonIcon icon={walletSharp} />
           <IonLabel>Offers</IonLabel>
+        </IonTabButton> */}
+        <IonTabButton tab="history" href="/history">
+          <IonIcon icon={statsChartSharp} />
+          <IonLabel>History</IonLabel>
         </IonTabButton>
       </IonTabBar>
     </IonTabs>

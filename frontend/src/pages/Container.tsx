@@ -1,36 +1,17 @@
-import {
-  IonButton,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonLabel,
-  IonMenu,
-  IonMenuToggle,
-  IonPage,
-  IonRouterOutlet,
-  IonSplitPane,
-  IonTabBar,
-  IonTabButton,
-  IonTabs,
-  IonTitle,
-  IonToolbar,
-} from "@ionic/react";
-import { Redirect, Route } from "react-router";
-import { extensionPuzzleSharp, homeSharp, walletSharp } from "ionicons/icons";
-import { memo } from "react";
-
+import { IonPage, IonSplitPane } from "@ionic/react";
 import HomePage from "./home/Home";
 import PlayPage from "./play/Play";
 import MatchesPage from "./matches/Matches";
 import OffersPage from "./offers/Offers";
-
-import "./Container.scss";
+import HistoryPage from "./history/History";
 import LeftMenu from "$ui/LeftMenu/LeftMenu";
 import RightMenu from "$ui/RightMenu/RightMenu";
 import { useMenuContext } from "$contexts/MenuContext";
 import Tabs from "$ui/Tabs/Tabs";
 import Header from "$ui/Header/Header";
 import DataFetchers from "./DataFetcher";
+import { memo } from "react";
+import "./Container.scss";
 
 const Container: React.FC = () => {
   const version = "0.0.1";
@@ -60,6 +41,7 @@ const Container: React.FC = () => {
                 play={<PlayPage />}
                 matches={<MatchesPage />}
                 offers={<OffersPage />}
+                history={<HistoryPage />}
               />
             </div>
             <RightMenu />

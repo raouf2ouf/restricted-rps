@@ -11,66 +11,49 @@ import "./Matches.scss";
 import Tooltip from "$ui/components/Tooltip/Tooltip";
 import { useCurrentGameContext } from "$contexts/CurrentGameContext";
 import { useAppSelector } from "$store/store";
-import { selectMatchesForGame } from "$store/matches.slice";
+import {
+  selectAnsweredMatchesForGameOfPlayer,
+  selectMatchesForGame,
+  selectOpenMatchesForGameOfNotPlayer,
+  selectOpenMatchesForGameOfPlayer,
+  selectPlayedMatchesForGame,
+} from "$store/matches.slice";
 import OfferMatchModal from "./OfferMatchModal";
-import { Match, MatchState } from "$models/Match";
+import { MatchState } from "$models/Match";
 import OpenMatchDisplay from "./OpenMatchDisplay";
 import AnsweredMatchDisplay from "./AnsweredMatchDisplay";
 
 const MatchesPage: React.FC = () => {
-  const [playerOpenMatches, setPlayerOpenMatches] = useState<Match[]>([]);
-  const [otherOpenMatches, setOtherOpenMatches] = useState<Match[]>([]);
-  const [toCloseMatches, settoCloseMatches] = useState<Match[]>([]);
-  const [otherMatches, setOtherMatches] = useState<Match[]>([]);
   const { currentGameAddress, currentPlayerId } = useCurrentGameContext();
 
   const [present, dismiss] = useIonModal(OfferMatchModal, {
     onDismiss: (data: string, role: string) => dismiss(data, role),
   });
 
-  const matches = useAppSelector((state) =>
-    selectMatchesForGame(state, currentGameAddress || "")
+  const playerOpenMatches = useAppSelector((state) =>
+    selectOpenMatchesForGameOfPlayer(
+      state,
+      currentGameAddress || "",
+      currentPlayerId
+    )
   );
-
-  useEffect(() => {
-    const playerOpen: Match[] = [];
-    const otherOpen: Match[] = [];
-    const toClose: Match[] = [];
-    const other: Match[] = [];
-    for (const m of matches) {
-      if (m.player1 == currentPlayerId) {
-        if (m.result == MatchState.UNDECIDED) {
-          playerOpen.push(m);
-        } else if (m.result == MatchState.ANSWERED) {
-          toClose.push(m);
-        } else if (m.result != MatchState.CANCELLED) {
-          other.push(m);
-        }
-      } else if (m.result == MatchState.UNDECIDED) {
-        otherOpen.push(m);
-      } else {
-        if (m.result != MatchState.CANCELLED) {
-          other.push(m);
-        }
-      }
-    }
-    setPlayerOpenMatches(playerOpen);
-    setOtherOpenMatches(otherOpen);
-    settoCloseMatches(toClose);
-    setOtherMatches(other);
-    setPlayerOpenMatches(
-      matches.filter((m) => {
-        console.log("matchplayer", m.player1);
-        console.log("currentplayerId", currentPlayerId);
-        return m.player1 == currentPlayerId && m.result == MatchState.UNDECIDED;
-      })
-    );
-    setOtherOpenMatches(
-      matches.filter(
-        (m) => m.player1 != currentPlayerId && m.result == MatchState.UNDECIDED
-      )
-    );
-  }, [matches, currentPlayerId]);
+  const toCloseMatches = useAppSelector((state) =>
+    selectAnsweredMatchesForGameOfPlayer(
+      state,
+      currentGameAddress || "",
+      currentPlayerId
+    )
+  );
+  const otherOpenMatches = useAppSelector((state) =>
+    selectOpenMatchesForGameOfNotPlayer(
+      state,
+      currentGameAddress || "",
+      currentPlayerId
+    )
+  );
+  const playedMatches = useAppSelector((state) =>
+    selectPlayedMatchesForGame(state, currentGameAddress || "")
+  );
 
   function offerMatch() {
     present();
@@ -125,7 +108,7 @@ const MatchesPage: React.FC = () => {
                   <div>Played Matches</div>
                   <Tooltip text=""></Tooltip>
                 </IonLabel>
-                {otherMatches.map((m) => (
+                {playedMatches.map((m) => (
                   <AnsweredMatchDisplay id={m.id} key={m.id} />
                 ))}
               </div>

@@ -4,11 +4,13 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import openGamesReducer from "./openGames.slice";
 import playersStateReducer from "./playersState.slice";
 import matchesReducer from "./matches.slice";
+import historiesReducer from "./histories.slice";
 
 const rootReducer = combineReducers({
   openGames: openGamesReducer,
   playersState: playersStateReducer,
   matches: matchesReducer,
+  histories: historiesReducer,
 });
 
 export const setupStore = (preloadedState?: any) => {

@@ -1,20 +1,36 @@
 import { memo, useEffect, useState } from "react";
 
 import "./WinLossRatio.scss";
+import { useAppSelector } from "$store/store";
+import { selectAllHistories } from "$store/histories.slice";
 
-interface Props {
-  won: number;
-  lost: number;
-  draw: number;
-}
+interface Props {}
 
-const WinLossRation: React.FC<Props> = ({ won, lost, draw }) => {
+const WinLossRation: React.FC<Props> = () => {
+  const histories = useAppSelector((state) => selectAllHistories(state));
   const [wonPercent, setWonPercent] = useState<number>(0);
   const [drawPercent, setDrawPercent] = useState<number>(0);
   const [lostPercent, setLostPercent] = useState<number>(0);
+  const [won, setWon] = useState<number>(0);
+  const [draw, setDraw] = useState<number>(0);
+  const [lost, setLost] = useState<number>(0);
 
   useEffect(() => {
-    const total = won + lost + draw;
+    const total = histories.length;
+    let won = 0,
+      draw = 0,
+      lost = 0;
+    for (const history of histories) {
+      const paidAmount = BigInt(history.paidAmount);
+      const rewards = BigInt(history.rewards);
+      if (paidAmount > rewards) {
+        lost++;
+      } else if (paidAmount < rewards) {
+        won++;
+      } else {
+        draw++;
+      }
+    }
     if (total > 0) {
       setWonPercent((won * 100) / total);
       setDrawPercent((draw * 100) / total);
@@ -24,7 +40,10 @@ const WinLossRation: React.FC<Props> = ({ won, lost, draw }) => {
       setDrawPercent(0);
       setLostPercent(0);
     }
-  }, [won, lost, draw]);
+    setWon(won);
+    setLost(lost);
+    setDraw(draw);
+  }, [histories]);
 
   return (
     <div className="ratio">

@@ -15,18 +15,13 @@ import * as GAME_CONTRACT from '../contracts/RestrictedRPSGame.json';
 import { ChainService } from '../services/chain.service';
 import { ConfigService } from '../services/config.service';
 import { encrypt, ECIES_CONFIG } from 'eciesjs';
+import { initHistory, History } from 'src/entities/history.entity';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 type GameWithContract = {
   db: Game;
   contract?: Contract;
 };
-
-// for tests
-async function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
 
 @Injectable()
 export class GameService {
@@ -35,12 +30,47 @@ export class GameService {
   constructor(
     @InjectRepository(Game)
     private readonly gamesRepository: Repository<Game>,
+    @InjectRepository(History)
+    private readonly historiesRepository: Repository<History>,
     private readonly contracts: ContractsService,
     private readonly chainService: ChainService,
     private readonly configService: ConfigService,
   ) {
     this.addFactoryEventListeners();
     this.getGames().then(() => {});
+  }
+
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async handleVerifyingAndClosing() {
+    const games = this.games.values();
+    for (const game of games) {
+      try {
+        const shouldVerify = game.contract!.isReadyToVerify();
+        if (shouldVerify) {
+          const txVerify = await game.contract!.verifyDealerHonesty(
+            game.db.initialDeck,
+            game.db.secret,
+          );
+          await txVerify.wait();
+          const txComputeRewards = await game.contract!.computeRewards();
+          await txComputeRewards.wait();
+          const txClose = await game.contract!.closeGame();
+          await txClose.wait();
+          const txPay = await game.contract!.payPlayers();
+          await txPay.wait();
+        }
+      } catch (e) {}
+    }
+  }
+
+  public async getHistory(playerAddress: string): Promise<History[]> {
+    const histories: History[] = await this.historiesRepository.find({
+      where: {
+        chain: this.configService.CHAIN,
+        address: playerAddress.toLowerCase(),
+      },
+    });
+    return histories;
   }
 
   private addFactoryEventListeners() {
@@ -66,6 +96,28 @@ export class GameService {
         this.onPlayerJoined(address, Number(playerId), publicKey);
       },
     );
+    contract.on('GameClosed', async (state: bigint) => {
+      console.log('game closed', state);
+      const states: any[] = await contract.getPlayersState();
+      console.log('states', states);
+      const db = this.games.get(address).db;
+      for (const state of states) {
+        const his = initHistory({
+          chain: this.configService.CHAIN,
+          address: state.player.toLowerCase(),
+          gameAddress: address,
+          rewards: state.rewards,
+          paidAmount: state.paidAmount,
+          gameId: db.id,
+        });
+        db.state = GameState.CLOSED.toString();
+        this.historiesRepository.save(his);
+        this.gamesRepository.save(db);
+        this.games.delete(address);
+      }
+      const tx = await contract.payPlayers();
+      const receipt = tx.wait();
+    });
     return contract;
   }
   private async onPlayerJoined(
@@ -94,7 +146,7 @@ export class GameService {
     const dbGames: Game[] = await this.gamesRepository.find({
       where: {
         chain: this.configService.CHAIN,
-        state: GameState.OPEN,
+        state: GameState.OPEN.toString(),
       },
     });
     for (const dbGame of dbGames) {

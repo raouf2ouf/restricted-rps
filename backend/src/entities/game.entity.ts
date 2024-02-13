@@ -2,9 +2,12 @@ import { Column, Entity } from 'typeorm';
 import { Base } from './base.entity';
 
 export enum GameState {
-  OPEN = '0',
-  CLOSED = '1',
-  INVALID = '2',
+  OPEN = 0,
+  WAITING_FOR_SEED,
+  DEALER_CHEATED,
+  DEALER_HONESTY_PROVEN,
+  COMPUTED_REWARDS,
+  CLOSED,
 }
 
 @Entity()
@@ -46,7 +49,7 @@ export function initGame(obj: {
   const game = new Game();
   game.address = obj.address;
   game.id = obj.id;
-  game.state = GameState.OPEN;
+  game.state = GameState.OPEN.toString();
   game.chain = obj.chain;
   game.initialDeck = obj.initialDeck;
   game.secret = obj.secret;

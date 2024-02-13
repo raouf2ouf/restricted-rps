@@ -169,42 +169,57 @@ export const selectMatchesForGame = createSelector(
   }
 );
 
-// export const selectOpenMatchesForGameOfPlayer = createSelector(
-//   [
-//     selectAllMatches,
-//     (state, gameAddress: string, playerId: number) => {
-//       return { gameAddress, playerId };
-//     },
-//   ],
-//   (matches: Match[], obj: any) => {
-//     const gAdr = obj.gameAddress.toLowerCase();
-//     return matches.filter(
-//       (m) =>
-//         m.gameAddress.toLowerCase() == gAdr &&
-//         m.player1 == obj.playerId &&
-//         m.result == MatchState.UNDECIDED
-//     );
-//   }
-// );
+export const selectOpenMatchesForGameOfPlayer = createSelector(
+  [
+    (state, gameAddress: string, playerId) =>
+      selectMatchesForGame(state, gameAddress),
+    (state, gameAddress: string, playerId: number) => {
+      return playerId;
+    },
+  ],
+  (matches: Match[], playerId: number) => {
+    return matches.filter(
+      (m) => m.player1 == playerId && m.result == MatchState.UNDECIDED
+    );
+  }
+);
 
-// export const selectOpenMatchesForGameNotOfPlayer = createSelector(
-//   [
-//     selectAllMatches,
-//     (state, gameAddress: string, playerId: number) => {
-//       return { gameAddress, playerId };
-//     },
-//   ],
-//   (matches: Match[], obj: any) => {
-//     const gAdr = obj.gameAddress.toLowerCase();
-//     return matches.filter(
-//       (m) =>
-//         m.gameAddress.toLowerCase() == gAdr &&
-//         m.player1 != obj.playerId &&
-//         m.result == MatchState.UNDECIDED
-//     );
-//   }
-// );
+export const selectOpenMatchesForGameOfNotPlayer = createSelector(
+  [
+    (state, gameAddress: string, playerId) =>
+      selectMatchesForGame(state, gameAddress),
+    (state, gameAddress: string, playerId: number) => {
+      return playerId;
+    },
+  ],
+  (matches: Match[], playerId: number) => {
+    return matches.filter(
+      (m) => m.player1 != playerId && m.result == MatchState.UNDECIDED
+    );
+  }
+);
 
+export const selectAnsweredMatchesForGameOfPlayer = createSelector(
+  [
+    (state, gameAddress: string, playerId) =>
+      selectMatchesForGame(state, gameAddress),
+    (state, gameAddress: string, playerId: number) => {
+      return playerId;
+    },
+  ],
+  (matches: Match[], playerId: number) => {
+    return matches.filter(
+      (m) => m.player1 == playerId && m.result == MatchState.ANSWERED
+    );
+  }
+);
+
+export const selectPlayedMatchesForGame = createSelector(
+  [(state, gameAddress: string) => selectMatchesForGame(state, gameAddress)],
+  (matches: Match[]) => {
+    return matches.filter((m) => m.result >= MatchState.DRAW);
+  }
+);
 // Slice
 type ExtraState = {};
 export const matchesSlice = createSlice({

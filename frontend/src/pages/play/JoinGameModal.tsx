@@ -41,7 +41,6 @@ type Props = {
 const JoinGameModal: React.FC<Props> = ({ onDismiss, info }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [value, setValue] = useState<bigint>(BigInt(0));
-  const [gasCost, setGasCost] = useState<bigint>(BigInt(0));
   const [cash, setCash] = useState<bigint>(BigInt(0));
 
   const { setCurrentGameAddressAndPlayerId } = useCurrentGameContext();
@@ -55,23 +54,8 @@ const JoinGameModal: React.FC<Props> = ({ onDismiss, info }) => {
   const client = usePublicClient();
   const { data: gasPrice } = useGasPrice();
 
-  async function estimateGas(value: bigint) {
-    return await client.estimateContractGas({
-      address: info.address as "0x${string}",
-      abi: GAME_CONTRACT.abi,
-      functionName: "joinGame",
-      value,
-      args: [publicKey],
-    });
-  }
-
   useEffect(() => {
     let t: bigint = BigInt(info.starCost) * BigInt(3) + cash;
-    estimateGas(t).then((gasEstimate) => {
-      if (gasPrice !== undefined) {
-        setGasCost(gasEstimate * gasPrice * 2n);
-      }
-    });
     setValue(t);
   }, [info, cash, gasPrice]);
 
@@ -159,6 +143,7 @@ const JoinGameModal: React.FC<Props> = ({ onDismiss, info }) => {
                 <Tooltip text="" />
               </div>
               <IonRange
+                disabled
                 ticks={false}
                 snaps
                 min={0}
@@ -181,12 +166,12 @@ const JoinGameModal: React.FC<Props> = ({ onDismiss, info }) => {
           <div className="cost transaction-cost">
             <div className="what-you-get">
               <div className="cost-label">
-                <IonLabel>Estimated Transaction Gas Cost</IonLabel>
+                <IonLabel>Joining Fee</IonLabel>
                 <Tooltip text="" />
               </div>
             </div>
             <div className="what-you-pay">
-              <div>{wTe(gasCost)}</div>
+              <div>{0}</div>
               <div className="unit">{collateralUnit}</div>
             </div>
           </div>
@@ -194,7 +179,7 @@ const JoinGameModal: React.FC<Props> = ({ onDismiss, info }) => {
           <div className="total">
             <IonLabel>Total</IonLabel>
             <IonLabel color="primary">
-              ~{wTe(value + gasCost)} {collateralUnit}
+              ~{wTe(value)} {collateralUnit}
             </IonLabel>
           </div>
           {/* <div className="keys">

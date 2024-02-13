@@ -5,6 +5,7 @@ import { useAccount, useConnect } from "wagmi";
 import "./Wallet.scss";
 import { useAppDispatch } from "$store/store";
 import { setPlayerAddress } from "$store/playersState.slice";
+import { fetchHistory } from "$store/histories.slice";
 type Props = {};
 
 const Wallet: React.FC<Props> = ({}) => {
@@ -23,6 +24,7 @@ const Wallet: React.FC<Props> = ({}) => {
   useEffect(() => {
     if (address) {
       dispatch(setPlayerAddress(address));
+      dispatch(fetchHistory(address));
     }
   }, [address]);
   return (
