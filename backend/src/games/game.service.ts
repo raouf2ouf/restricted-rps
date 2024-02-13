@@ -60,7 +60,6 @@ export class GameService {
       GAME_CONTRACT.abi,
       this.chainService.getSigner(),
     );
-    console.log('seeting listener');
     contract.on(
       'GameJoined',
       (playerId: bigint, playerAddress: string, publicKey: string) => {
@@ -126,8 +125,11 @@ export class GameService {
     const deck = generateShuffledDeck();
     const secret = generateSecret();
     const hash = generateHash(deck, secret);
+    const duration = 3;
 
-    const tx = await this.contracts.factory.createGame(hash, 1, { value: 1 });
+    const tx = await this.contracts.factory.createGame(hash, duration, {
+      value: 1,
+    });
     const txReceipt = await tx.wait();
     const logs = txReceipt.logs;
     const eventFilter = await this.contracts.factory.filters

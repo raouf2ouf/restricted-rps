@@ -53,7 +53,7 @@ const GameDisplay: React.FC<Props> = ({ id, isPlayer, playerId }) => {
           <div className="game-duration column">
             <IonLabel className="label">Duration</IonLabel>
             <IonLabel>
-              <Timer />
+              <Timer endTime={info.endTimestamp} />
             </IonLabel>
           </div>
           {isPlayer ? (

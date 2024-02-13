@@ -7,9 +7,9 @@ export type GameInfoArray = [
   number | undefined, // gameId
   number | undefined, // nbrPlayers
   number | undefined, // nbrMatches
-  number | undefined, // duration
   bigint | undefined, // starCost
   bigint | undefined, // 1M cash cost
+  bigint | undefined, // endtime
   string[] // players
 ];
 
@@ -18,9 +18,9 @@ export interface GameInfo {
   address: "0x${string}";
   nbrPlayers: number;
   nbrMatches: number;
-  duration: number;
   starCost: string;
   cashCost: string;
+  endTimestamp: number;
   players: string[];
 }
 
@@ -33,9 +33,9 @@ export function gameArrayToGameInfo(
     id: data[0]!,
     nbrPlayers: data[1]!,
     nbrMatches: data[2]!,
-    duration: data[3]!,
-    starCost: data[4]!.toString(),
-    cashCost: data[5]!.toString(),
+    starCost: data[3]!.toString(),
+    cashCost: data[4]!.toString(),
+    endTimestamp: Number(data[5]),
     players: data[6],
   };
 }

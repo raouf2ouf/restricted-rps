@@ -14,7 +14,6 @@ import { useAccount, useConfig, useWriteContract } from "wagmi";
 import * as GAME_CONTRACT from "$contracts/RestrictedRPSGame.json";
 import { MatchState } from "$models/Match";
 import { cardToType } from "$models/Card";
-import { lockOrUnlockCard } from "src/api/local";
 import AnswerMatchModal from "./AnswerMatchModal";
 
 type Props = {

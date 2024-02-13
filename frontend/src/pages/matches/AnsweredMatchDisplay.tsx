@@ -47,12 +47,12 @@ const AnsweredMatchDisplay: React.FC<Props> = ({ id, isPlayer }) => {
       },
       {
         onSuccess: async (data) => {
-          await lockOrUnlockCard(
-            address!,
-            match.gameAddress,
-            match.player1Card,
-            -1
-          );
+          // await lockOrUnlockCard(
+          //   address!,
+          //   match.gameAddress,
+          //   match.player1Card,
+          //   -1
+          // );
           dispatch(
             fetchMatchesForGame({ config, gameAddress: match.gameAddress })
           );

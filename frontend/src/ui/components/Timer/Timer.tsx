@@ -1,17 +1,16 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useMemo } from "react";
 
-type Props = {};
+type Props = {
+  endTime: number;
+};
 
-function getRandomInt(min: number, max: number): number {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-const Timer: React.FC<Props> = () => {
-  const [seconds, setSeconds] = useState<number>(getRandomInt(0, 60));
-  const [minutes, setMinutes] = useState<number>(getRandomInt(0, 60));
-  const [hours, setHours] = useState<number>(getRandomInt(21, 23));
+const Timer: React.FC<Props> = ({ endTime }) => {
+  const time = useMemo(() => new Date(endTime * 1000 - Date.now()), [endTime]);
+  const [seconds, setSeconds] = useState<number>(time.getUTCSeconds());
+  const [minutes, setMinutes] = useState<number>(time.getUTCMinutes());
+  const [hours, setHours] = useState<number>(
+    (time.getUTCDate() - 1) * 24 + time.getUTCHours()
+  );
 
   useEffect(() => {
     if (hours <= 0 && minutes <= 0 && seconds <= 0) return;

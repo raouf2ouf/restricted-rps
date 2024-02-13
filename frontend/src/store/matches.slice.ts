@@ -11,6 +11,7 @@ import { RootState } from "./store";
 import { getMatchData, lockOrUnlockCard } from "src/api/local";
 import { Match, MatchState, buildMatchId } from "$models/Match";
 import { fetchPlayersStateForGame } from "./playersState.slice";
+import { Card } from "$models/Card";
 
 // API
 const getMatchesForGame = async (
@@ -42,6 +43,50 @@ const getMatchesForGame = async (
   }
   return matches;
 };
+
+export const unlockCardsOfMatch = createAsyncThunk(
+  "matches/unlockCardsOfMatch",
+  async (
+    {
+      config,
+      gameAddress,
+      matchId,
+    }: {
+      config: Config;
+      gameAddress: "0x${string}";
+      matchId: number;
+    },
+    thunkApi
+  ): Promise<void> => {
+    const state = thunkApi.getState() as RootState;
+    const playerAddress = state.playersState.playerAddress?.toLowerCase();
+    if (!playerAddress) return;
+    const matches: Record<string, Match> = state.matches.entities;
+    const match = matches[buildMatchId(gameAddress, matchId)];
+    const states: PlayerState[] = Object.values(state.playersState.entities);
+    const playerState = states.find(
+      (s) => s.playerAddress.toLowerCase() == playerAddress
+    );
+    if (playerState) {
+      const playerId = playerState.playerId;
+      if (match.player1 == playerId) {
+        await lockOrUnlockCard(
+          playerAddress,
+          gameAddress,
+          match.player1Card,
+          -1
+        );
+      } else if (match.player2 == playerId) {
+        await lockOrUnlockCard(
+          playerAddress,
+          gameAddress,
+          match.player2Card,
+          -1
+        );
+      }
+    }
+  }
+);
 
 export const fetchMatchesForGame = createAsyncThunk(
   "matches/fetchMatchesForGame",

@@ -319,7 +319,7 @@ contract RestrictedRPSGame is ISeedable {
     function getGameInfo()
         public
         view
-        returns (uint8, uint8, uint8, uint8, uint256, uint256, address[] memory)
+        returns (uint8, uint8, uint8, uint256, uint256, uint256, address[] memory)
     {
         uint8 nbrPlayers = _nbrPlayers;
         address[] memory players = new address[](nbrPlayers);
@@ -330,9 +330,9 @@ contract RestrictedRPSGame is ISeedable {
             _gameId,
             _nbrPlayers,
             _nbrMatches,
-            _duration,
             _starCost,
             _m1CashCost,
+            _endTimestamp,
             players
         );
     }

@@ -39,7 +39,6 @@ import { wTe } from "$contracts/index";
 import { GameInfo } from "$models/Game";
 import {
   generateKeyPair,
-  lockOrUnlockCard,
   setMatchData,
   setPrivateKeyForGame,
 } from "src/api/local";

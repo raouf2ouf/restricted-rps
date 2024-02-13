@@ -44,6 +44,7 @@ const PlayerHand: React.FC<Props> = memo(({ gameAddress, playerAddress }) => {
       buildPlayerStateId(gameAddress as string, playerAddress)
     )
   );
+  console.log(playerState);
   return (
     <div className="player-hand-container onn">
       {!playerState && (

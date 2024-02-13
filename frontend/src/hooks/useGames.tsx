@@ -16,11 +16,12 @@ import {
   fetchPlayersStateForGame,
   setInitialPlayerHand,
 } from "$store/playersState.slice";
-import { fetchMatchesForGame } from "$store/matches.slice";
+import { fetchMatchesForGame, unlockCardsOfMatch } from "$store/matches.slice";
 
 export function useOpenGames(): string[] | undefined {
   const { factoryAddress } = useContractsContext();
 
+  // fetch open games
   const { data, refetch } = useReadContract({
     address: factoryAddress as "0x${string}",
     abi: FACTORY_CONTRACT.abi,
@@ -31,11 +32,10 @@ export function useOpenGames(): string[] | undefined {
     address: factoryAddress as "0x${string}",
     abi: FACTORY_CONTRACT.abi,
     onLogs(logs) {
-      console.log(logs);
+      console.log("logs from factory", logs);
       refetch();
     },
   });
-  console.log(data);
 
   return data as string[] | undefined;
 }
@@ -44,12 +44,14 @@ export function useGame(gameAddress: "0x${string}"): GameInfo | undefined {
   const dispatch = useAppDispatch();
   const config = useConfig();
   const { address } = useAccount();
+  // fetch game info
   const { data, refetch } = useReadContract({
     address: gameAddress as "0x${string}",
     abi: GAME_CONTRACT.abi,
     functionName: "getGameInfo",
   });
 
+  // fetch player state
   useEffect(() => {
     dispatch(fetchPlayersStateForGame({ config, gameAddress }));
   }, []);
@@ -59,16 +61,16 @@ export function useGame(gameAddress: "0x${string}"): GameInfo | undefined {
     abi: GAME_CONTRACT.abi,
     onLogs(logs) {
       let shouldRefetch = false;
-      console.log("logs", logs);
+      console.log("game logs", logs);
       for (const log of logs) {
         const eventName = (log as any).eventName;
+        const args = (log as any).args as any;
+        const topics = (log as any).topics as any;
         switch (eventName) {
           case "GameJoined":
             shouldRefetch = true;
             break;
           case "PlayerWasGivenHand":
-            const args = (log as any).args as any;
-            const topics = (log as any).topics as any;
             const playerAddress = "0x" + topics[1].substring(26);
             const encryptedHand = args.encryptedHand.slice(2);
             if (playerAddress.toLowerCase() == address?.toLowerCase()) {
@@ -79,7 +81,6 @@ export function useGame(gameAddress: "0x${string}"): GameInfo | undefined {
                 encryptedHand
               ).then((hand) => {
                 if (hand) {
-                  console.log("dispatching");
                   dispatch(setInitialPlayerHand({ config, hand, gameAddress }));
                 }
               });
@@ -92,8 +93,17 @@ export function useGame(gameAddress: "0x${string}"): GameInfo | undefined {
             break;
           case "MatchAnswered":
           case "MatchCreated":
+            dispatch(fetchMatchesForGame({ config, gameAddress }));
+            break;
           case "MatchClosed":
             dispatch(fetchMatchesForGame({ config, gameAddress }));
+            dispatch(
+              unlockCardsOfMatch({
+                config,
+                gameAddress,
+                matchId: Number(topics[1]),
+              })
+            );
             break;
         }
       }

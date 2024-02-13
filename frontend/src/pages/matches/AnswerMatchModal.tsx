@@ -84,7 +84,7 @@ const AnswerMatchModal: React.FC<Props> = ({ onDismiss, match }) => {
       },
       {
         onSuccess: async (data) => {
-          lockOrUnlockCard(address!, match.gameAddress, card!, -1);
+          lockOrUnlockCard(address!, match.gameAddress, card!, 1);
           dispatch(
             fetchMatchesForGame({ config, gameAddress: match.gameAddress })
           );

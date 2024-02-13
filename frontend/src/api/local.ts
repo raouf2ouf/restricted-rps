@@ -71,15 +71,9 @@ export async function setPlayerStateForGame(
     lockedScissors?: number;
   }
 ) {
-  let existingState = await getPlayerStateForGame(wallet, gameAddress);
-  if (!existingState) {
-    existingState = obj;
-  } else {
-    Object.assign(existingState, obj);
-  }
   await storage.set(
     `${wallet.toLowerCase()}-${gameAddress.toLowerCase()}-hand`,
-    existingState
+    obj
   );
 }
 

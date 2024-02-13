@@ -23,35 +23,45 @@ const PlayPage: React.FC = () => {
     <IonPage>
       <IonContent>
         <div className="play-main-container">
-          <div className="section player-games">
-            <IonLabel>
-              <div>Your Current Open Games</div>
-              <Tooltip text=""></Tooltip>
-            </IonLabel>
-            {playerGames.map((g) => (
-              <GameDisplay
-                id={g.id}
-                key={g.id}
-                isPlayer
-                playerId={g.players.findIndex(
-                  (ad) => ad.toLowerCase() == address?.toLowerCase()
-                )}
-              />
-            ))}
-          </div>
-          <div className="section select-game">
-            <IonLabel>
-              <div>Select or Start a Game to Play</div>
-              <Tooltip text=""></Tooltip>
-            </IonLabel>
-            {otherGames.map((g) => (
-              <GameDisplay id={g.id} key={g.id} />
-            ))}
+          {!address ? (
+            <div className="section">
+              <IonLabel>
+                <div>Please connect your wallet to see games.</div>
+              </IonLabel>
+            </div>
+          ) : (
+            <>
+              <div className="section player-games">
+                <IonLabel>
+                  <div>Your Current Open Games</div>
+                  <Tooltip text=""></Tooltip>
+                </IonLabel>
+                {playerGames.map((g) => (
+                  <GameDisplay
+                    id={g.id}
+                    key={g.id}
+                    isPlayer
+                    playerId={g.players.findIndex(
+                      (ad) => ad.toLowerCase() == address?.toLowerCase()
+                    )}
+                  />
+                ))}
+              </div>
+              <div className="section select-game">
+                <IonLabel>
+                  <div>Select or Start a Game to Play</div>
+                  <Tooltip text=""></Tooltip>
+                </IonLabel>
+                {otherGames.map((g) => (
+                  <GameDisplay id={g.id} key={g.id} />
+                ))}
 
-            {/* <IonButton className="rectangle-button" fill="clear">
+                {/* <IonButton className="rectangle-button" fill="clear">
               <IonLabel>Create Game</IonLabel>
             </IonButton> */}
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </IonContent>
     </IonPage>

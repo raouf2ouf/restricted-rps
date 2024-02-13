@@ -27,7 +27,7 @@ const EventsHistory: React.FC<Props> = ({}) => {
       <List>
         {playerStates.map((st, i) => {
           return (
-            <div className="player-state">
+            <div className="player-state" key={i}>
               <div className="game-info">
                 <div className="game-offer">
                   <IonLabel className="label">Player </IonLabel>
