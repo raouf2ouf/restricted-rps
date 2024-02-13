@@ -4,7 +4,8 @@
 
 ## Links
 
-- [Main Factory Contract](https://pegasus.lightlink.io/address/0x37A62b897Ce9Bf2858a2755104b0158d9FAb3248)
+- [Main Factory Contract](https://pegasus.lightlink.io/address/0x728995bEA7AA626193a1Ae5194188Ac5d3305083)
+- [Example of a Game](https://pegasus.lightlink.io/address/0x87b2095d0220F5cD2F1E71bcFD122Ae8B8972824)
 - [Demo Video](https://www.youtube.com/watch?v=5mIXBvg7C2U)
 - [Presentation](https://docs.google.com/presentation/d/1NLqBMs5poGdPGoexNdt9FHfSR3FSEIhnVAr6JW32ZHY/edit?usp=sharing)
 

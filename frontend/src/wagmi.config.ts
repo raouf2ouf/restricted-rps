@@ -1,12 +1,13 @@
 import { createConfig, http } from "wagmi";
-import { foundry } from "wagmi/chains";
+import { foundry, lightlinkPegasus, lightlinkPhoenix } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
 
 const wagmiConfig = createConfig({
-  chains: [foundry],
+  chains: [foundry, lightlinkPegasus],
   connectors: [injected()],
   transports: {
     [foundry.id]: http(),
+    [lightlinkPegasus.id]: http(),
   },
 });
 
