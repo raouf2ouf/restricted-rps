@@ -47,7 +47,7 @@ const PlayerHand: React.FC<Props> = memo(({ gameAddress, playerAddress }) => {
   console.log(playerState);
   return (
     <div className="player-hand-container onn">
-      {!playerState && (
+      {(!playerState || !playerState.playerWasGivenCards) && (
         <div className="loading">
           <IonSpinner name="lines-sharp" color="primary"></IonSpinner>
           <IonBackdrop visible={true} tappable={false}></IonBackdrop>

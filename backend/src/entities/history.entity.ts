@@ -1,21 +1,18 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 import { Base } from './base.entity';
 
 @Entity()
 export class History extends Base {
-  @Column({ type: 'int' })
-  id: number;
-
-  @Column('varchar', { length: 100, nullable: false })
+  @PrimaryColumn('varchar', { length: 100, nullable: false })
   chain: string;
 
-  @Column('varchar', { length: 60, nullable: false })
+  @PrimaryColumn('varchar', { length: 60, nullable: false })
   address: string;
 
-  @Column('varchar', { length: 60, nullable: false })
+  @PrimaryColumn('varchar', { length: 60, nullable: false })
   gameAddress: string;
 
-  @Column({ type: 'int', nullable: false })
+  @PrimaryColumn({ type: 'int', nullable: false })
   gameId: number;
 
   @Column({ type: 'varchar', nullable: false })

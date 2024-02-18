@@ -84,7 +84,13 @@ const AnswerMatchModal: React.FC<Props> = ({ onDismiss, match }) => {
       },
       {
         onSuccess: async (data) => {
-          lockOrUnlockCard(address!, match.gameAddress, card!, 1);
+          lockOrUnlockCard(
+            address!,
+            match.gameAddress,
+            match.matchId,
+            card!,
+            1
+          );
           dispatch(
             fetchMatchesForGame({ config, gameAddress: match.gameAddress })
           );
@@ -139,6 +145,16 @@ const AnswerMatchModal: React.FC<Props> = ({ onDismiss, match }) => {
             <IonLabel>Answer Match</IonLabel>
             <Tooltip text="" />
           </div>
+
+          <div className="item player1bet">
+            <div className="item-label">
+              <IonLabel>Opponent's Bet</IonLabel>
+              <Tooltip text="" />
+            </div>
+            <div className="item-data">
+              <SmallStars direction="row" nbr={match.player1Bet} expanded={5} />
+            </div>
+          </div>
           <div className="item player1bet">
             <div className="item-label">
               <IonLabel>Your Bet</IonLabel>
@@ -148,6 +164,7 @@ const AnswerMatchModal: React.FC<Props> = ({ onDismiss, match }) => {
               <SmallStars direction="row" nbr={match.player2Bet} expanded={5} />
             </div>
           </div>
+
           <div className="item card">
             <div className="item-label">
               <IonLabel>Card To Play</IonLabel>

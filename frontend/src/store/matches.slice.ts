@@ -8,7 +8,11 @@ import {
   createSlice,
 } from "@reduxjs/toolkit";
 import { RootState } from "./store";
-import { getMatchData, lockOrUnlockCard } from "src/api/local";
+import {
+  getMatchData,
+  lockOrUnlockCard,
+  unlockCardsIfNecessary,
+} from "src/api/local";
 import { Match, MatchState, buildMatchId } from "$models/Match";
 import { fetchPlayersStateForGame } from "./playersState.slice";
 import { Card } from "$models/Card";
@@ -73,6 +77,7 @@ export const unlockCardsOfMatch = createAsyncThunk(
         await lockOrUnlockCard(
           playerAddress,
           gameAddress,
+          matchId,
           match.player1Card,
           -1
         );
@@ -80,6 +85,7 @@ export const unlockCardsOfMatch = createAsyncThunk(
         await lockOrUnlockCard(
           playerAddress,
           gameAddress,
+          matchId,
           match.player2Card,
           -1
         );
@@ -118,12 +124,21 @@ export const fetchMatchesForGame = createAsyncThunk(
           match.secret = data.secret;
           match.player1Card = data.card;
         }
+      } else if (playerAddress) {
+        try {
+          await unlockCardsIfNecessary(
+            playerAddress,
+            gameAddress,
+            match.matchId
+          );
+        } catch (e) {
+          console.error(e);
+        }
       }
     }
     await thunkAPI.dispatch(
       fetchPlayersStateForGame({ config, gameAddress: gameAddress })
     );
-    console.log("matches", matches);
     return matches;
   }
 );
@@ -141,6 +156,7 @@ export const cancelMatch = createAsyncThunk(
       await lockOrUnlockCard(
         playerAddress,
         match.gameAddress,
+        match.matchId,
         match.player1Card,
         -1
       );

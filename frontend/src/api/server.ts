@@ -11,3 +11,18 @@ export async function getHistory(address: string): Promise<History[]> {
   const res = await axios.get<History[]>(`history/${address}`);
   return res.data;
 }
+
+export async function autoCloseMatch(
+  address: string,
+  card: number,
+  matchId: number,
+  secret: string
+): Promise<boolean> {
+  const res = await axios.post<boolean>(`matches/autoClose`, {
+    address,
+    matchId,
+    card,
+    secret,
+  });
+  return res.data;
+}

@@ -47,9 +47,9 @@ const GameState: React.FC<Props> = ({}) => {
       className={`game-state-container ${currentGameAddress ? "on" : "off"}`}
     >
       <SmallPlayers nbr={nbrPlayers} />
-      <SmallCard nbrLocked={nbrRocks} nbr="?" card={Card.ROCK} />
-      <SmallCard nbrLocked={nbrPapers} nbr="?" card={Card.PAPER} />
-      <SmallCard nbrLocked={nbrScissors} nbr="?" card={Card.SCISSORS} />
+      <SmallCard nbrLocked={nbrRocks} nbr="12" card={Card.ROCK} />
+      <SmallCard nbrLocked={nbrPapers} nbr="12" card={Card.PAPER} />
+      <SmallCard nbrLocked={nbrScissors} nbr="12" card={Card.SCISSORS} />
       <SmallStars nbr={nbrStars} expanded={1} showNumber direction="column" />
     </div>
   );

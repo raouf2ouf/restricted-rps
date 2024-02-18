@@ -34,6 +34,8 @@ const getPlayersStates = async (
       nbrRockUsed: d.nbrRockUsed,
       nbrPaperUsed: d.nbrPaperUsed,
       nbrScissorsUsed: d.nbrScissorsUsed,
+      cheated: d.cheated,
+      playerWasGivenCards: d.playerWasGivenCards,
     };
     playersStates.push(state);
   }
@@ -122,7 +124,7 @@ export const selectPlayersStateForGame = createSelector(
 type ExtraState = {
   playerAddress?: string;
 };
-export const playersStateSlice = createSlice({
+export const playersStateSlice: any = createSlice({
   name: "playersState",
   initialState: playersStateAdapter.getInitialState<ExtraState>({}),
   reducers: {

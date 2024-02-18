@@ -8,6 +8,26 @@ const storage = new Storage({
 });
 storage.create();
 
+export async function setLastBlockNumber(
+  wallet: string,
+  gameAddress: string,
+  blocknumber: bigint
+) {
+  await storage.set(
+    `${wallet.toLowerCase()}-${gameAddress.toLowerCase()}-blocknumber`,
+    blocknumber
+  );
+}
+export async function getLastBlockNumber(
+  wallet: string,
+  gameAddress: string
+): Promise<bigint> {
+  const res = (await storage.get(
+    `${wallet.toLowerCase()}-${gameAddress.toLowerCase()}-blocknumber`
+  )) as bigint | undefined;
+  return BigInt(res || 0);
+}
+
 export async function setMatchData(
   wallet: string,
   gameAddress: string,
@@ -15,7 +35,7 @@ export async function setMatchData(
   secret: string,
   card: Card
 ): Promise<void> {
-  await lockOrUnlockCard(wallet, gameAddress, card, 1);
+  await lockOrUnlockCard(wallet, gameAddress, matchId, card, 1);
   await storage.set(
     `${wallet.toLowerCase()}-${gameAddress.toLowerCase()}-${matchId}`,
     { secret, card }
@@ -77,12 +97,46 @@ export async function setPlayerStateForGame(
   );
 }
 
+export async function unlockCardsIfNecessary(
+  wallet: string,
+  gameAddress: string,
+  matchId: number
+) {
+  const isLocked = await storage.get(
+    `${wallet.toLowerCase()}-${gameAddress.toLowerCase()}-${matchId}-lock`
+  );
+  if (isLocked && isLocked.locked) {
+    await lockOrUnlockCard(wallet, gameAddress, matchId, isLocked.card, -1);
+  }
+}
+
 export async function lockOrUnlockCard(
   wallet: string,
   gameAddress: string,
+  matchId: number,
   card: Card,
   nbr: number
 ) {
+  const isLocked = await storage.get(
+    `${wallet.toLowerCase()}-${gameAddress.toLowerCase()}-${matchId}-lock`
+  );
+  if (isLocked && !isLocked.locked && nbr < 0) return;
+  if (nbr > 0) {
+    // locking
+    await storage.set(
+      `${wallet.toLowerCase()}-${gameAddress.toLowerCase()}-${matchId}-lock`,
+      {
+        locked: true,
+        card,
+      }
+    );
+  } else {
+    // unlocking
+    await storage.set(
+      `${wallet.toLowerCase()}-${gameAddress.toLowerCase()}-${matchId}-lock`,
+      { locked: false }
+    );
+  }
   let existingState = await getPlayerStateForGame(wallet, gameAddress);
   if (existingState) {
     switch (card) {

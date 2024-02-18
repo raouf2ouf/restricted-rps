@@ -60,6 +60,7 @@ const JoinGameModal: React.FC<Props> = ({ onDismiss, info }) => {
   }, [info, cash, gasPrice]);
 
   function handleSubmit() {
+    const nbrPlayers = info.players.length;
     setLoading(true);
     writeContract(
       {
@@ -73,7 +74,7 @@ const JoinGameModal: React.FC<Props> = ({ onDismiss, info }) => {
         onSuccess: async (data) => {
           console.log("==========joined game", data);
           await setPrivateKeyForGame(address!, info.address, privateKey);
-          setCurrentGameAddressAndPlayerId(info.address, info.players.length);
+          setCurrentGameAddressAndPlayerId(info.address, nbrPlayers);
           closeModal();
         },
         onError: (error) => {
@@ -136,7 +137,7 @@ const JoinGameModal: React.FC<Props> = ({ onDismiss, info }) => {
             </div>
           </div>
 
-          <div className="cost cash-cost">
+          {/* <div className="cost cash-cost">
             <div className="what-you-get">
               <div className="cost-label">
                 <IonLabel>Cash</IonLabel>
@@ -162,7 +163,7 @@ const JoinGameModal: React.FC<Props> = ({ onDismiss, info }) => {
               <div>{wTe(cash)}</div>
               <div className="unit">{collateralUnit}</div>
             </div>
-          </div>
+          </div> */}
           <div className="cost transaction-cost">
             <div className="what-you-get">
               <div className="cost-label">

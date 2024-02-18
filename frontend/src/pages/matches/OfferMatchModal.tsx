@@ -2,6 +2,7 @@ import {
   IonBackdrop,
   IonButton,
   IonButtons,
+  IonCheckbox,
   IonContent,
   IonHeader,
   IonIcon,
@@ -54,6 +55,7 @@ import { randomBytes } from "crypto";
 import { concat, encodePacked, keccak256 } from "viem";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { fetchMatchesForGame } from "$store/matches.slice";
+import { autoCloseMatch } from "src/api/server";
 
 type Props = {
   onDismiss: () => void;
@@ -65,6 +67,7 @@ function computeHash(secret: string, card: Card): string {
 }
 const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
   const dispatch = useAppDispatch();
+  const [autoSend, setAutoSend] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(true);
   const [nbrStars, setNbrStars] = useState<number>(0);
@@ -128,7 +131,11 @@ const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
             hash: hash as "0x${string}",
           });
           const matchId = Number(BigInt(receipt.logs[0].topics[1]!));
-          console.log("matchId", matchId);
+          if (autoSend) {
+            try {
+              await autoCloseMatch(currentGameAddress!, card!, matchId, secret);
+            } catch (e) {}
+          }
           await setMatchData(
             address!,
             currentGameAddress!,
@@ -265,25 +272,17 @@ const OfferGameModal: React.FC<Props> = ({ onDismiss }) => {
             </div>
           </div>
 
-          {/* <div className="cost transaction-cost">
-            <div className="what-you-get">
-              <div className="cost-label">
-                <IonLabel>Estimated Transaction Gas Cost</IonLabel>
-                <Tooltip text="" />
-              </div>
-            </div>
-            <div className="what-you-pay">
-              <div>{wTe(gasCost)}</div>
-              <div className="unit">{collateralUnit}</div>
-            </div>
+          <div className="auto-answer">
+            <IonCheckbox
+              labelPlacement="end"
+              checked={autoSend}
+              onIonChange={({ detail }) => setAutoSend(detail.checked)}
+            >
+              <IonLabel>
+                Let the server automatically close this match when answered.
+              </IonLabel>
+            </IonCheckbox>
           </div>
-
-          <div className="total">
-            <IonLabel>Total</IonLabel>
-            <IonLabel color="primary">
-              ~{wTe(value + gasCost)} {collateralUnit}
-            </IonLabel>
-          </div> */}
           <IonButton
             fill="clear"
             className="rectangle-button"

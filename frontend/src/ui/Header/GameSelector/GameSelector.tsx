@@ -10,8 +10,11 @@ import { useCurrentGameContext } from "$contexts/CurrentGameContext";
 type Props = {};
 
 const GameSelector: React.FC<Props> = ({}) => {
-  const { currentGameAddress, setCurrentGameAddressAndPlayerId } =
-    useCurrentGameContext();
+  const {
+    currentGameAddress,
+    currentPlayerId,
+    setCurrentGameAddressAndPlayerId,
+  } = useCurrentGameContext();
   const { address } = useAccount();
   const games = useAppSelector((state) => selectAllPlayerGames(state, address));
 
@@ -41,6 +44,13 @@ const GameSelector: React.FC<Props> = ({}) => {
             );
           })}
       </IonSelect>
+
+      {currentPlayerId !== undefined && currentPlayerId > -1 && (
+        <IonLabel className="player-id">
+          <span className="hide-sm">You are Player </span>
+          <span className="id">{currentPlayerId}</span>
+        </IonLabel>
+      )}
     </div>
   );
 };

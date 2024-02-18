@@ -6,7 +6,7 @@ import "./Wallet.scss";
 import { useAppDispatch } from "$store/store";
 import { setPlayerAddress } from "$store/playersState.slice";
 import { fetchHistory } from "$store/histories.slice";
-import { lightlinkPegasus } from "viem/chains";
+import { foundry, lightlinkPegasus } from "viem/chains";
 type Props = {};
 
 const Wallet: React.FC<Props> = ({}) => {
@@ -26,7 +26,7 @@ const Wallet: React.FC<Props> = ({}) => {
 
   useEffect(() => {
     if (address) {
-      switchChain({ connector: connectors[0], chainId: lightlinkPegasus.id });
+      switchChain({ connector: connectors[0], chainId: foundry.id });
       dispatch(setPlayerAddress(address));
       dispatch(fetchHistory(address));
     }

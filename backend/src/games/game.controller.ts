@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { GameService } from './game.service';
 
 @Controller('api')
@@ -17,15 +17,20 @@ export class GameController {
     // return res;
   }
 
-  @Get('create-game')
-  async createGame(): Promise<any> {
-    const txReceipt = await this.game.createGame();
-    return txReceipt;
-  }
-
   @Get('history/:address')
   async getGame(@Param('address') address: string) {
+    console.log('getting history for', address);
     const histories = await this.game.getHistory(address);
     return histories;
+  }
+
+  @Post('matches/autoClose')
+  async autoClose(@Body() data: any) {
+    return this.game.setAutoClose(
+      data.address,
+      data.matchId,
+      data.card,
+      data.secret,
+    );
   }
 }

@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
@@ -9,23 +8,24 @@ import {RestrictedRPSGame} from "../../src/RestrictedRPSGame.sol";
 import {TestUtils} from "./Utils.t.sol";
 
 contract RestrictedRPS_GameClosingTest is TestUtils {
-
     function test_GameClosingDealerAFK() public {
         // Create Valid Game
         uint8 duration = 1;
         RestrictedRPSGame game = createGameWithPlayers(6, duration);
         uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
         uint256[] memory balances = new uint256[](6);
-        for(uint8 i; i < 6; i++) {
+        for (uint8 i; i < 6; i++) {
             balances[i] = PLAYERS[i].balance;
         }
 
-        vm.warp(block.timestamp + (duration * 1 days) + 1 days);
+        vm.warp(block.timestamp + (duration * 1 days) + 3 days);
+        // console2.logUint(block.timestamp);
         vm.prank(PLAYERS[6]);
         game.closeGame();
+        vm.prank(PLAYERS[6]);
         game.payPlayers();
-       
-        for(uint8 i; i < 6; i++) {
+
+        for (uint8 i; i < 6; i++) {
             assert((balances[i] + joiningCost) == PLAYERS[i].balance);
         }
     }
@@ -36,12 +36,39 @@ contract RestrictedRPS_GameClosingTest is TestUtils {
         RestrictedRPSGame game = createGameWithPlayers(6, duration);
         uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
 
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 2, 3, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 4, 5, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            2,
+            3,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            4,
+            5,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
 
         uint256[] memory balances = new uint256[](6);
-        for(uint8 i; i < 6; i++) {
+        for (uint8 i; i < 6; i++) {
             balances[i] = PLAYERS[i].balance;
         }
 
@@ -49,8 +76,8 @@ contract RestrictedRPS_GameClosingTest is TestUtils {
         vm.prank(PLAYERS[6]);
         game.closeGame();
         game.payPlayers();
-       
-        for(uint8 i; i < 6; i++) {
+
+        for (uint8 i; i < 6; i++) {
             assert((balances[i] + joiningCost) == PLAYERS[i].balance);
         }
     }
@@ -61,12 +88,66 @@ contract RestrictedRPS_GameClosingTest is TestUtils {
         RestrictedRPSGame game = createGameWithPlayers(2, duration);
         uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
 
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
 
         uint256 player1Balance = PLAYERS[0].balance;
         uint256 player2Balance = PLAYERS[0].balance;
@@ -86,15 +167,71 @@ contract RestrictedRPS_GameClosingTest is TestUtils {
 
         // player 1 has 3 rocks and 3 scissors, player 2 has 2 rocks, 1 paper, and 3 scissors;
 
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.PAPER), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", 1, 1);
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            uint8(RestrictedRPSGame.Card.PAPER),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            1,
+            1
+        );
 
         uint256 player1Balance = PLAYERS[0].balance;
         uint256 player2Balance = PLAYERS[1].balance;
+
+        vm.warp(block.timestamp + (duration * 1 days) + 1 days);
 
         vm.prank(DEALER);
         game.verifyDealerHonesty(initialDeck, "secret");
@@ -122,15 +259,71 @@ contract RestrictedRPS_GameClosingTest is TestUtils {
 
         // player 1 has 3 rocks and 3 scissors, player 2 has 2 rocks, 1 paper, and 3 scissors;
 
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.PAPER), uint8(RestrictedRPSGame.Card.PAPER), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", 1, 1);
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.PAPER),
+            uint8(RestrictedRPSGame.Card.PAPER),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            1,
+            1
+        );
 
         uint256 player1Balance = PLAYERS[0].balance;
         uint256 player2Balance = PLAYERS[1].balance;
+
+        vm.warp(block.timestamp + (duration * 1 days) + 1 days);
 
         vm.prank(DEALER);
         game.verifyDealerHonesty(initialDeck, "secret");
@@ -149,20 +342,80 @@ contract RestrictedRPS_GameClosingTest is TestUtils {
         bytes9 initialDeck = generateDeck();
         initialDeck = restrictedRPSFactory.setCard(initialDeck, 0, 1); // replace a rock with paper;
         uint8 duration = 1;
-        RestrictedRPSGame game = createGameWithPlayersGivenInitialDeck(initialDeck, 2, duration);
+        RestrictedRPSGame game = createGameWithPlayersGivenInitialDeck(
+            initialDeck,
+            2,
+            duration
+        );
         uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
 
         // player 1 has 3 rocks and 3 scissors, player 2 has 2 rocks, 1 paper, and 3 scissors;
 
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.ROCK), uint8(RestrictedRPSGame.Card.ROCK), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.PAPER), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", 1, 1);
-        offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", 1, 1);
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.ROCK),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            uint8(RestrictedRPSGame.Card.PAPER),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            1,
+            1
+        );
+        offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            1,
+            1
+        );
 
         uint256 player1Balance = PLAYERS[0].balance;
         uint256 player2Balance = PLAYERS[1].balance;
+
+        vm.warp(block.timestamp + (duration * 1 days) + 1 days);
 
         vm.prank(DEALER);
         game.verifyDealerHonesty(initialDeck, "secret");

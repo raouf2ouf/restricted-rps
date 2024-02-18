@@ -15,6 +15,8 @@ export interface PlayerState {
   lockedRock?: number;
   lockedPaper?: number;
   lockedScissors?: number;
+  cheated: boolean;
+  playerWasGivenCards: boolean;
 }
 export function buildPlayerStateId(gameAddress: string, playerAddress: string) {
   return `${gameAddress.toLowerCase()}-${playerAddress.toLowerCase()}`;

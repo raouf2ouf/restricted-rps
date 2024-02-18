@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import { keccak256, solidityPackedKeccak256 } from 'ethers';
+import { solidityPackedKeccak256 } from 'ethers';
 
 export enum Card {
   ROCK = 0,
@@ -7,7 +7,7 @@ export enum Card {
   SCISSORS = 2,
 }
 
-const INITIAL_DECK = 'AAAAA8555555000000';
+const INITIAL_DECK = 'AAAAAA555555000000';
 
 export function generateSecret(): string {
   const nbrCharacters: number = Math.floor(Math.random() * (10 - 6 + 1) + 6);

@@ -17,7 +17,6 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
     event GameStarted();
     event GamePlayerWasGivenHand(uint8 indexed playerId, bytes32 encryptedHand);
 
-
     //////////////////
     // Game Create
     //////////////////
@@ -35,7 +34,10 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         assert(game.getDealer() == DEALER);
         assert(game.getInitialHash() == initialHash);
         assert(game.getDuration() == duration);
-        assert(game.getEnd() > block.timestamp && game.getEnd() <= (block.timestamp + (duration * 1 days)));
+        assert(
+            game.getEnd() > block.timestamp &&
+                game.getEnd() <= (block.timestamp + (duration * 1 days))
+        );
     }
 
     function test_GameCreationWithInsufficiantFunds() public {
@@ -85,13 +87,10 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
     function test_GameCreationWithReset() public {
         // bytes32 initialHash = 0x0;
         // uint8 duration = 1;
-
         // for (uint8 i; i < MAX_GAMES; i++) {
         //     createGame(initialHash, duration, GAME_CREATION_FEE);
         // }
-
         // // TODO close last game
-
         // uint8 gameId = createGame(initialHash, duration, GAME_CREATION_FEE);
         // assert(gameId == 0);
     }
@@ -114,14 +113,11 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         address player = PLAYERS[0];
         uint256 amount = restrictedRPSFactory.getBasicJoiningCost();
         vm.startPrank(player);
-        uint8 playerId = game.joinGame{
-            value: amount
-        }("");
+        uint8 playerId = game.joinGame{value: amount}("");
         vm.stopPrank();
 
-        RestrictedRPSGame.PlayerState memory playerState = game.getPlayerState(
-            playerId
-        );
+        RestrictedRPSGame.PlayerState memory playerState = game
+            .getPlayersState()[playerId];
 
         assert(playerState.player == player);
         assert(playerState.nbrStars == NBR_STARS);
@@ -188,9 +184,7 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         uint256 joiningCost = restrictedRPSFactory.getBasicJoiningCost();
         vm.expectRevert(RestrictedRPSGame.RestrictedRPS_GameNotOpen.selector);
         vm.startPrank(player);
-        uint8 playerId = game.joinGame{
-            value: joiningCost
-        }("");
+        uint8 playerId = game.joinGame{value: joiningCost}("");
         vm.stopPrank();
     }
 
@@ -224,5 +218,4 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         vm.prank(PLAYERS[2]);
         game.joinGame{value: joiningCost}("");
     }
-
 }

@@ -1,4 +1,4 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, Index } from 'typeorm';
 import { Base } from './base.entity';
 
 export enum GameState {
@@ -7,6 +7,7 @@ export enum GameState {
   DEALER_CHEATED,
   DEALER_HONESTY_PROVEN,
   COMPUTED_REWARDS,
+  READY_TO_PAY,
   CLOSED,
 }
 
@@ -19,7 +20,11 @@ export class Game extends Base {
   chain: string;
 
   @Column('varchar', { length: 60, nullable: false })
+  @Index()
   address: string;
+
+  @Column({ type: 'int' })
+  blockNumber: number;
 
   @Column('varchar', { length: 100, nullable: false })
   initialDeck: string;
@@ -45,6 +50,7 @@ export function initGame(obj: {
   address: string;
   initialDeck: string;
   secret: string;
+  blockNumber: number;
 }): Game {
   const game = new Game();
   game.address = obj.address;
@@ -53,5 +59,6 @@ export function initGame(obj: {
   game.chain = obj.chain;
   game.initialDeck = obj.initialDeck;
   game.secret = obj.secret;
+  game.blockNumber = obj.blockNumber;
   return game;
 }

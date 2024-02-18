@@ -37,25 +37,65 @@ const MatcheHistory: React.FC<Props> = ({ match, playerId }) => {
         </div>
         <div className="game-status">
           {isPlayer1 && match.result == MatchState.WIN1 && (
-            <IonLabel className="won">You Won</IonLabel>
+            <>
+              <IonLabel className="won">You Won</IonLabel>
+              <SmallStars
+                direction="row"
+                nbr={match.player2Bet}
+                expanded={match.player2Bet}
+              />
+            </>
           )}
           {isPlayer1 && match.result == MatchState.WIN2 && (
-            <IonLabel className="lost">You Lost</IonLabel>
+            <>
+              <IonLabel className="lost">You Lost</IonLabel>
+              <SmallStars
+                direction="row"
+                nbr={match.player1Bet}
+                expanded={match.player1Bet}
+              />
+            </>
           )}
           {!isPlayer1 && match.result == MatchState.WIN2 && (
-            <IonLabel className="won">You Won</IonLabel>
+            <>
+              <IonLabel className="won">You Won</IonLabel>
+              <SmallStars
+                direction="row"
+                nbr={match.player1Bet}
+                expanded={match.player1Bet}
+              />
+            </>
           )}
           {!isPlayer1 && match.result == MatchState.WIN1 && (
-            <IonLabel className="lost">You Lost</IonLabel>
+            <>
+              <IonLabel className="lost">You Lost</IonLabel>
+              <SmallStars
+                direction="row"
+                nbr={match.player2Bet}
+                expanded={match.player2Bet}
+              />
+            </>
           )}
           {isPlayer1 && match.result == MatchState.DRAW && (
-            <IonLabel className="draw">Draw</IonLabel>
+            <>
+              <IonLabel className="draw">Draw</IonLabel>
+              <SmallStars
+                direction="row"
+                nbr={match.player1Bet}
+                expanded={match.player1Bet}
+              />
+            </>
           )}
-          <SmallStars
-            direction="row"
-            nbr={match.player1Bet}
-            expanded={match.player1Bet}
-          />
+          {!isPlayer1 && match.result == MatchState.DRAW && (
+            <>
+              <IonLabel className="draw">Draw</IonLabel>
+              <SmallStars
+                direction="row"
+                nbr={match.player2Bet}
+                expanded={match.player2Bet}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

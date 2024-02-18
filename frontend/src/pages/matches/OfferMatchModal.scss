@@ -59,5 +59,10 @@
         }
       }
     }
+    ion-checkbox {
+      ion-label {
+        color: var(--ion-color-light-shade);
+      }
+    }
   }
 }

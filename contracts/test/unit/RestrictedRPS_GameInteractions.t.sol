@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
@@ -12,7 +11,6 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
     ///////////////////
     // Events
     ///////////////////
-
 
     //////////////////
     // Game Playing
@@ -33,10 +31,8 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
             2
         );
         RestrictedRPSGame.Match memory m = game.getMatches()[matchId];
-        RestrictedRPSGame.PlayerState memory playerState = game.getPlayerState(
-            0
-        );
-
+        RestrictedRPSGame.PlayerState[] memory pStates = game.getPlayersState();
+        RestrictedRPSGame.PlayerState memory playerState = pStates[0];
         assert(m.player1 == 0);
         assert(m.player1Hash == hashedCard);
         assert(m.player1Bet == 1);
@@ -64,9 +60,8 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         vm.prank(player1);
         game.cancelMatch(matchId);
         RestrictedRPSGame.Match memory m = game.getMatches()[matchId];
-        RestrictedRPSGame.PlayerState memory playerState = game.getPlayerState(
-            0
-        );
+        RestrictedRPSGame.PlayerState memory playerState = game
+            .getPlayersState()[0];
 
         assert(m.result == RestrictedRPSGame.MatchState.CANCELLED);
         assert(playerState.nbrStarsLocked == 0);
@@ -97,7 +92,14 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
                 .RestrictedRPS_PlayerHasOfferedTooManyMatches
                 .selector
         );
-        offerMatch(game, player1, uint8(RestrictedRPSGame.Card.SCISSORS), "secret", 1, 2);
+        offerMatch(
+            game,
+            player1,
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            1,
+            2
+        );
     }
 
     function test_answeringAMatch() public playersFunded(2) {
@@ -121,9 +123,8 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         game.answerMatch(matchId, RestrictedRPSGame.Card.ROCK);
 
         RestrictedRPSGame.Match memory m = game.getMatches()[matchId];
-        RestrictedRPSGame.PlayerState memory playerState = game.getPlayerState(
-            1
-        );
+        RestrictedRPSGame.PlayerState memory playerState = game
+            .getPlayersState()[1];
 
         assert(m.player2 == 1);
         assert(m.player2Card == RestrictedRPSGame.Card.ROCK);
@@ -137,10 +138,20 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
 
         uint8 p1Bet = 1;
         uint8 p2Bet = 2;
-        uint8 matchId = offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.ROCK), "secret", p1Bet, p2Bet);
+        uint8 matchId = offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            uint8(RestrictedRPSGame.Card.ROCK),
+            "secret",
+            p1Bet,
+            p2Bet
+        );
         RestrictedRPSGame.Match memory m = game.getMatches()[matchId];
-        RestrictedRPSGame.PlayerState memory p1State = game.getPlayerState(0);
-        RestrictedRPSGame.PlayerState memory p2State = game.getPlayerState(1);
+        RestrictedRPSGame.PlayerState[] memory pStates = game.getPlayersState();
+        RestrictedRPSGame.PlayerState memory p1State = pStates[0];
+        RestrictedRPSGame.PlayerState memory p2State = pStates[1];
 
         assert(m.player2 == 1);
         assert(m.player1Card == RestrictedRPSGame.Card.SCISSORS);
@@ -158,10 +169,20 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
 
         uint8 p1Bet = 1;
         uint8 p2Bet = 2;
-        uint8 matchId = offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.SCISSORS), "secret", p1Bet, p2Bet);
+        uint8 matchId = offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            "secret",
+            p1Bet,
+            p2Bet
+        );
         RestrictedRPSGame.Match memory m = game.getMatches()[matchId];
-        RestrictedRPSGame.PlayerState memory p1State = game.getPlayerState(0);
-        RestrictedRPSGame.PlayerState memory p2State = game.getPlayerState(1);
+        RestrictedRPSGame.PlayerState[] memory pStates = game.getPlayersState();
+        RestrictedRPSGame.PlayerState memory p1State = pStates[0];
+        RestrictedRPSGame.PlayerState memory p2State = pStates[1];
 
         assert(m.player2 == 1);
         assert(m.player1Card == RestrictedRPSGame.Card.SCISSORS);
@@ -172,17 +193,27 @@ contract RestrictedRPS_GameCreationTest is TestUtils {
         assert(p1State.nbrStars == 3);
         assert(p2State.nbrStars == 3);
     }
-    
+
     function test_closingAMatchWin() public playersFunded(2) {
         // Create Valid Game
         RestrictedRPSGame game = createGameWithPlayers(2, 1);
 
         uint8 p1Bet = 1;
         uint8 p2Bet = 2;
-        uint8 matchId = offerAndAnswerAndCloseMatch(game, 0, 1, uint8(RestrictedRPSGame.Card.SCISSORS), uint8(RestrictedRPSGame.Card.PAPER), "secret", p1Bet, p2Bet);
+        uint8 matchId = offerAndAnswerAndCloseMatch(
+            game,
+            0,
+            1,
+            uint8(RestrictedRPSGame.Card.SCISSORS),
+            uint8(RestrictedRPSGame.Card.PAPER),
+            "secret",
+            p1Bet,
+            p2Bet
+        );
         RestrictedRPSGame.Match memory m = game.getMatches()[matchId];
-        RestrictedRPSGame.PlayerState memory p1State = game.getPlayerState(0);
-        RestrictedRPSGame.PlayerState memory p2State = game.getPlayerState(1);
+        RestrictedRPSGame.PlayerState[] memory pStates = game.getPlayersState();
+        RestrictedRPSGame.PlayerState memory p1State = pStates[0];
+        RestrictedRPSGame.PlayerState memory p2State = pStates[1];
 
         assert(m.player2 == 1);
         assert(m.player1Card == RestrictedRPSGame.Card.SCISSORS);

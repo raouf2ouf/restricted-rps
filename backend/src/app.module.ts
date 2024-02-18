@@ -7,10 +7,14 @@ import { Game } from './entities/game.entity';
 import { GamesModule } from './games/games.module';
 import { History } from './entities/history.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { Match } from './entities/match.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({ ...dataSourceOptions, entities: [Game, History] }),
+    TypeOrmModule.forRoot({
+      ...dataSourceOptions,
+      entities: [Game, History, Match],
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'www'),
       exclude: ['/api*'],

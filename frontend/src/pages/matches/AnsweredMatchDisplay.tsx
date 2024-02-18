@@ -14,7 +14,6 @@ import { useAccount, useConfig, useWriteContract } from "wagmi";
 import * as GAME_CONTRACT from "$contracts/RestrictedRPSGame.json";
 import { MatchState, resultToText } from "$models/Match";
 import { cardToType } from "$models/Card";
-import { lockOrUnlockCard } from "src/api/local";
 import AnswerMatchModal from "./AnswerMatchModal";
 import SmallCard from "$ui/components/SmallCard/SmallCard";
 
@@ -47,12 +46,6 @@ const AnsweredMatchDisplay: React.FC<Props> = ({ id, isPlayer }) => {
       },
       {
         onSuccess: async (data) => {
-          // await lockOrUnlockCard(
-          //   address!,
-          //   match.gameAddress,
-          //   match.player1Card,
-          //   -1
-          // );
           dispatch(
             fetchMatchesForGame({ config, gameAddress: match.gameAddress })
           );
