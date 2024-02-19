@@ -151,8 +151,11 @@ async function checkMissedLogs(
   dispatch: any
 ) {
   const client = getClient(config);
-  const lastBlockNumber = BigInt(await getLastBlockNumber(wallet, gameAddress));
+  let lastBlockNumber = BigInt(await getLastBlockNumber(wallet, gameAddress));
   const blockNumber = await getBlockNumber(config);
+  if (lastBlockNumber == BigInt(0)) {
+    lastBlockNumber = blockNumber - BigInt(100);
+  }
   if (lastBlockNumber == blockNumber) return;
   const logs = await getLogs(client, {
     address: gameAddress,
