@@ -1,7 +1,8 @@
 import { History } from "$models/History";
 import Axios from "axios";
 
-const API_SERVER = process.env.VITE_API || "http://localhost:3000/api/";
+// const API_SERVER = process.env.VITE_API || "http://localhost:3000/api/";
+const API_SERVER = "/";
 const axios = Axios.create({
   baseURL: `${API_SERVER}`,
   headers: { "Content-Type": "application/json" },
