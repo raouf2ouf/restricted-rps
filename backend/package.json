@@ -6,9 +6,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "npx @nestjs/cli build && copyfiles -a ./www/**/* dist",
+    "build": "npx @nestjs/cli build && npx copyfiles -a ./www/**/* dist",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start && copyfiles -a ./www/* dist",
+    "start": "nest start && npx copyfiles -a ./www/* dist",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
