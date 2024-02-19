@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "db:migrate": "npm --prefix backend run migration:run",
-    "heroku-postbuild": "npm run db:migrate",
-    "build": "npm --prefix backend install && npm --prefix backend run build",
+    "build": "npm --prefix backend install && npm --prefix backend run build && npm run db:migrate",
     "start": "npm --prefix backend run start:prod"
   },
   "author": "",
