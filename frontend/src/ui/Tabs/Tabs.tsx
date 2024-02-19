@@ -14,25 +14,23 @@ import {
 } from "ionicons/icons";
 import { ReactNode, memo } from "react";
 import { Redirect, Route } from "react-router";
+import History from "src/pages/history/History";
+import Home from "src/pages/home/Home";
+import Matches from "src/pages/matches/Matches";
+import Play from "src/pages/play/Play";
 
-type Props = {
-  home: ReactNode;
-  play: ReactNode;
-  matches: ReactNode;
-  offers: ReactNode;
-  history: ReactNode;
-};
+type Props = {};
 
-const Tabs: React.FC<Props> = ({ home, play, matches, offers, history }) => {
+const Tabs: React.FC<Props> = ({}) => {
   return (
     <IonTabs>
       <IonRouterOutlet>
         <Redirect exact path="/" to="/home" />
-        <Route path="/home" render={() => home} />
-        <Route path="/play" render={() => play} />
-        <Route path="/matches" render={() => matches} />
+        <Route path="/home" render={() => <Home />} />
+        <Route path="/play" render={() => <Play />} />
+        <Route path="/matches" render={() => <Matches />} />
         {/* <Route path="/offers" render={() => offers} /> */}
-        <Route path="/history" render={() => history} />
+        <Route path="/history" render={() => <History />} />
       </IonRouterOutlet>
       <IonTabBar slot="bottom">
         <IonTabButton tab="home" href="/home">
@@ -48,9 +46,9 @@ const Tabs: React.FC<Props> = ({ home, play, matches, offers, history }) => {
           <IonLabel>Matches</IonLabel>
         </IonTabButton>
         {/* <IonTabButton tab="offers" href="/offers" disabled>
-          <IonIcon icon={walletSharp} />
-          <IonLabel>Offers</IonLabel>
-        </IonTabButton> */}
+        <IonIcon icon={walletSharp} />
+        <IonLabel>Offers</IonLabel>
+      </IonTabButton> */}
         <IonTabButton tab="history" href="/history">
           <IonIcon icon={statsChartSharp} />
           <IonLabel>History</IonLabel>

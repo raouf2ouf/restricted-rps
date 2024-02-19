@@ -25,3 +25,9 @@ div.ion-page {
 ion-tabs {
   --ion-tab-bar-background: var(--ion-background-color);
 }
+
+#second {
+  .ion-page-invisible {
+    opacity: 1 !important;
+  }
+}

@@ -102,113 +102,113 @@ export class GameService {
     return false;
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
-  async handleVerifyingAndClosing() {
-    console.log('================== Starting CRON Job ======================');
-    const games = this.games.values();
-    if (this.games.size < 3) {
-      try {
-        const address = await this.createGame();
-        console.log('++++++++ Created Game: ', address);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    for (const game of games) {
-      try {
-        if (!game.contract) {
-          console.log('no contract');
-          continue;
-        }
-        console.log(`========== Game ${game.db.address} =================`);
-        const state = Number(await game.contract!.getState());
-        console.log(`===== State: ${state}`);
-        if (state == GameState.CLOSED) {
-          try {
-            const states: PlayerState[] = await game.contract.getPlayersState();
-            const db = game.db;
-            for (const state of states) {
-              const his = initHistory({
-                chain: this.configService.CHAIN,
-                address: state.player.toLowerCase(),
-                gameAddress: db.address,
-                rewards: BigInt(state.amountToPay).toString(),
-                paidAmount: BigInt(state.paidAmount).toString(),
-                gameId: db.id,
-              });
-              this.historiesRepository.save(his);
-              this.gamesRepository.delete(db);
-              this.games.delete(db.address);
-            }
-            // const tx = await contract.payPlayers();
-            // tx.wait();
-          } catch (e) {
-            console.error(e);
-          }
+  // @Cron(CronExpression.EVERY_5_MINUTES)
+  // async handleVerifyingAndClosing() {
+  //   console.log('================== Starting CRON Job ======================');
+  //   const games = this.games.values();
+  //   if (this.games.size < 3) {
+  //     try {
+  //       const address = await this.createGame();
+  //       console.log('++++++++ Created Game: ', address);
+  //     } catch (e) {
+  //       console.error(e);
+  //     }
+  //   }
+  //   for (const game of games) {
+  //     try {
+  //       if (!game.contract) {
+  //         console.log('no contract');
+  //         continue;
+  //       }
+  //       console.log(`========== Game ${game.db.address} =================`);
+  //       const state = Number(await game.contract!.getState());
+  //       console.log(`===== State: ${state}`);
+  //       if (state == GameState.CLOSED) {
+  //         try {
+  //           const states: PlayerState[] = await game.contract.getPlayersState();
+  //           const db = game.db;
+  //           for (const state of states) {
+  //             const his = initHistory({
+  //               chain: this.configService.CHAIN,
+  //               address: state.player.toLowerCase(),
+  //               gameAddress: db.address,
+  //               rewards: BigInt(state.amountToPay).toString(),
+  //               paidAmount: BigInt(state.paidAmount).toString(),
+  //               gameId: db.id,
+  //             });
+  //             this.historiesRepository.save(his);
+  //             this.gamesRepository.delete(db);
+  //             this.games.delete(db.address);
+  //           }
+  //           // const tx = await contract.payPlayers();
+  //           // tx.wait();
+  //         } catch (e) {
+  //           console.error(e);
+  //         }
 
-          continue;
-        }
-        const verifyRan: boolean = await this.verify(game);
-        let computedRewards: boolean = false;
-        if (verifyRan || state == GameState.DEALER_HONESTY_PROVEN) {
-          await delay();
-          computedRewards = await this.computeRewards(game);
-        }
-        let closedGame = false;
-        if (
-          computedRewards ||
-          state == GameState.COMPUTED_REWARDS ||
-          state == GameState.DEALER_CHEATED
-        ) {
-          await delay();
-          closedGame = await this.closeGame(game);
-        }
-        let paidPlayers = false;
-        if (closedGame || state == GameState.READY_TO_PAY) {
-          await delay();
-          paidPlayers = await this.payPlayers(game);
-        }
-        if (paidPlayers) {
-          console.log('5. Done');
-        }
+  //         continue;
+  //       }
+  //       const verifyRan: boolean = await this.verify(game);
+  //       let computedRewards: boolean = false;
+  //       if (verifyRan || state == GameState.DEALER_HONESTY_PROVEN) {
+  //         await delay();
+  //         computedRewards = await this.computeRewards(game);
+  //       }
+  //       let closedGame = false;
+  //       if (
+  //         computedRewards ||
+  //         state == GameState.COMPUTED_REWARDS ||
+  //         state == GameState.DEALER_CHEATED
+  //       ) {
+  //         await delay();
+  //         closedGame = await this.closeGame(game);
+  //       }
+  //       let paidPlayers = false;
+  //       if (closedGame || state == GameState.READY_TO_PAY) {
+  //         await delay();
+  //         paidPlayers = await this.payPlayers(game);
+  //       }
+  //       if (paidPlayers) {
+  //         console.log('5. Done');
+  //       }
 
-        const playersStates: PlayerState[] =
-          await game.contract!.getPlayersState();
-        for (let i = 0; i < playersStates.length; i++) {
-          const player = playersStates[i];
-          if (!player.playerWasGivenCards) {
-            console.log(
-              '------------- Player was not given hand!! ---------------',
-            );
-            const eventFilter = await game.contract.filters
-              .GameJoined()
-              .getTopicFilter();
-            const logs = await this.chainService.getProvider().getLogs({
-              address: game.db!.address,
-              topics: [eventFilter[0]],
-              fromBlock: game.db.blockNumber,
-              toBlock: 'latest',
-            });
-            for (const log of logs) {
-              console.log('------------- gamejoined log ---------------------');
-              const parsedLog = await game.contract.interface.parseLog({
-                topics: [...log.topics],
-                data: log.data,
-              });
-              console.log(log);
-              const playerId = Number(parsedLog.args[0]);
-              const publicKey = parsedLog.args[1];
-              if (playerId == i) {
-                this.onPlayerJoined(game.db.address, playerId, publicKey);
-              }
-            }
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }
+  //       const playersStates: PlayerState[] =
+  //         await game.contract!.getPlayersState();
+  //       for (let i = 0; i < playersStates.length; i++) {
+  //         const player = playersStates[i];
+  //         if (!player.playerWasGivenCards) {
+  //           console.log(
+  //             '------------- Player was not given hand!! ---------------',
+  //           );
+  //           const eventFilter = await game.contract.filters
+  //             .GameJoined()
+  //             .getTopicFilter();
+  //           const logs = await this.chainService.getProvider().getLogs({
+  //             address: game.db!.address,
+  //             topics: [eventFilter[0]],
+  //             fromBlock: game.db.blockNumber,
+  //             toBlock: 'latest',
+  //           });
+  //           for (const log of logs) {
+  //             console.log('------------- gamejoined log ---------------------');
+  //             const parsedLog = await game.contract.interface.parseLog({
+  //               topics: [...log.topics],
+  //               data: log.data,
+  //             });
+  //             console.log(log);
+  //             const playerId = Number(parsedLog.args[0]);
+  //             const publicKey = parsedLog.args[1];
+  //             if (playerId == i) {
+  //               this.onPlayerJoined(game.db.address, playerId, publicKey);
+  //             }
+  //           }
+  //         }
+  //       }
+  //     } catch (e) {
+  //       console.error(e);
+  //     }
+  //   }
+  // }
 
   public async getHistory(playerAddress: string): Promise<History[]> {
     const histories: History[] = await this.historiesRepository.find({

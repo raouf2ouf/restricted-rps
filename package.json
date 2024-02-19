@@ -1,0 +1,13 @@
+{
+  "name": "ethpoir",
+  "version": "0.2.5",
+  "description": "Restricted Random RPS on Lightlink",
+  "main": "index.js",
+  "scripts": {
+    "db:migrate": "npm --prefix backend run migration:run",
+    "build": "npm --prefix backend run build",
+    "start": "npm --prefix backend run start:prod"
+  },
+  "author": "",
+  "license": "ISC"
+}

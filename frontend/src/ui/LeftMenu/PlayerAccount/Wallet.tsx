@@ -26,7 +26,7 @@ const Wallet: React.FC<Props> = ({}) => {
 
   useEffect(() => {
     if (address) {
-      switchChain({ connector: connectors[0], chainId: foundry.id });
+      switchChain({ connector: connectors[0], chainId: lightlinkPegasus.id });
       dispatch(setPlayerAddress(address));
       dispatch(fetchHistory(address));
     }

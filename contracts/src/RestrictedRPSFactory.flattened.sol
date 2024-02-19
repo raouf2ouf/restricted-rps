@@ -467,6 +467,7 @@ contract RestrictedRPSGame is ISeedable {
         int8 initialNbrPapers;
         int8 initialNbrScissors;
         bool cheated;
+        bool playerWasGivenCards;
     }
 
     struct Match {
@@ -486,6 +487,7 @@ contract RestrictedRPSGame is ISeedable {
         DEALER_CHEATED,
         DEALER_HONESTY_PROVEN,
         COMPUTED_REWARDS,
+        READY_TO_PAY,
         CLOSED
     }
 
@@ -543,7 +545,7 @@ contract RestrictedRPSGame is ISeedable {
     ///////////////////
     // Events
     ///////////////////
-    event GameJoined(uint8 indexed playerId, address indexed player, string);
+    event GameJoined(uint8 indexed playerId, string);
     event GameStarted();
     event PlayerWasGivenHand(address indexed player, bytes encryptedHand);
     event SeedSet(uint256 seed);
@@ -577,9 +579,9 @@ contract RestrictedRPSGame is ISeedable {
 
     error RestrictedRPS_PlayerAlreadyJoined();
     error RestrictedRPS_PlayerBanned();
-    error RestrictedRPS_InvalidPlayerId();
     error RestrictedRPS_NotAPlayer();
     error RestrictedRPS_NotTheRightPlayer();
+    error RestrictedRPS_PlayerHandAlreadyGiven();
 
     error RestrictedRPS_InvalidMatchId();
     error RestrictedRPS_MatchAlreadyPlayed();
@@ -594,6 +596,7 @@ contract RestrictedRPSGame is ISeedable {
     error RestrictedRPS_DealerHonestyNotYetProven();
     error RestrictedRPS_GameNotClosable();
     error RestrictedRPS_GameNotReadyToVerify();
+    error RestrictedRPS_GameNotReadyToPay();
 
     ///////////////////
     // Constructor
@@ -643,27 +646,19 @@ contract RestrictedRPSGame is ISeedable {
         _;
     }
 
-    modifier isValidPlayerId(uint8 playerId) {
-        if (playerId >= _nbrPlayers) {
-            revert RestrictedRPS_InvalidPlayerId();
-        }
-        _;
-    }
-
-    modifier isValidMatchId(uint8 matchId) {
-        if (matchId >= _nbrMatches) {
-            revert RestrictedRPS_InvalidMatchId();
-        }
-        _;
-    }
+    // modifier isValidMatchId(uint8 matchId) {
+    //     if (matchId >= _nbrMatches) {
+    //         revert RestrictedRPS_InvalidMatchId();
+    //     }
+    //     _;
+    // }
 
     modifier isClosed() {
-        if(_state != GameState.CLOSED) {
+        if (_state != GameState.CLOSED) {
             revert RestrictedRPS_GameNotClosed();
         }
         _;
     }
-
 
     ///////////////////
     // Getters
@@ -700,16 +695,10 @@ contract RestrictedRPSGame is ISeedable {
         return _starCost;
     }
 
-    function getPlayerState(
-        uint8 playerId
-    ) external view isValidPlayerId(playerId) returns (PlayerState memory) {
-        return _players[playerId];
-    }
-
     function getPlayersState() external view returns (PlayerState[] memory) {
         uint8 nbrPlayers = _nbrPlayers;
         PlayerState[] memory playersStates = new PlayerState[](nbrPlayers);
-        for(uint8 i; i < nbrPlayers; i++) {
+        for (uint8 i; i < nbrPlayers; i++) {
             playersStates[i] = _players[i];
         }
         return playersStates;
@@ -728,16 +717,16 @@ contract RestrictedRPSGame is ISeedable {
         }
     }
 
-    // function getMatch(
-    //     uint8 matchId
-    // ) external view isValidMatchId(matchId) returns (Match memory) {
-    //     return _matches[matchId];
-    // }
+    function getMatch(
+        uint8 matchId /*isValidMatchId(matchId)*/
+    ) external view returns (Match memory) {
+        return _matches[matchId];
+    }
 
     function getMatches() external view returns (Match[] memory) {
         uint8 nbrMatches = _nbrMatches;
         Match[] memory matches = new Match[](nbrMatches);
-        for(uint8 i; i < nbrMatches; i++) {
+        for (uint8 i; i < nbrMatches; i++) {
             matches[i] = _matches[i];
         }
         return matches;
@@ -750,7 +739,15 @@ contract RestrictedRPSGame is ISeedable {
     function getGameInfo()
         public
         view
-        returns (uint8, uint8, uint8, uint256, uint256, uint256, address[] memory)
+        returns (
+            uint8,
+            uint8,
+            uint8,
+            uint256,
+            uint256,
+            uint256,
+            address[] memory
+        )
     {
         uint8 nbrPlayers = _nbrPlayers;
         address[] memory players = new address[](nbrPlayers);
@@ -808,65 +805,73 @@ contract RestrictedRPSGame is ISeedable {
     function _markAsDraw(
         uint8 matchId,
         uint8 player1Id,
-        uint8 player2Id
+        uint8 player2Id,
+        uint8 player1Bet,
+        uint8 player2Bet
     ) private {
-        Match memory m = _matches[matchId];
         _matches[matchId].result = MatchState.DRAW;
-        _players[player1Id].nbrStarsLocked -= m.player1Bet;
-        _players[player2Id].nbrStarsLocked -= m.player2Bet;
+        _players[player1Id].nbrStarsLocked -= player1Bet;
+        _players[player2Id].nbrStarsLocked -= player2Bet;
     }
 
     function _markAsPlayer1Win(
         uint8 matchId,
         uint8 player1Id,
-        uint8 player2Id
+        uint8 player2Id,
+        uint8 player1Bet,
+        uint8 player2Bet
     ) private {
-        Match memory m = _matches[matchId];
         _matches[matchId].result = MatchState.WIN1;
-        _players[player1Id].nbrStarsLocked -= m.player1Bet;
-        _players[player1Id].nbrStars += m.player2Bet;
-        _players[player2Id].nbrStarsLocked -= m.player2Bet;
-        _players[player2Id].nbrStars -= m.player2Bet;
+        _players[player1Id].nbrStarsLocked -= player1Bet;
+        _players[player1Id].nbrStars += player2Bet;
+        _players[player2Id].nbrStarsLocked -= player2Bet;
+        _players[player2Id].nbrStars -= player2Bet;
     }
 
     function _markAsPlayer2Win(
         uint8 matchId,
         uint8 player1Id,
-        uint8 player2Id
+        uint8 player2Id,
+        uint8 player1Bet,
+        uint8 player2Bet
     ) private {
-        Match memory m = _matches[matchId];
         _matches[matchId].result = MatchState.WIN2;
-        _players[player1Id].nbrStarsLocked -= m.player1Bet;
-        _players[player1Id].nbrStars -= m.player1Bet;
-        _players[player2Id].nbrStarsLocked -= m.player2Bet;
-        _players[player2Id].nbrStars += m.player1Bet;
+        _players[player1Id].nbrStarsLocked -= player1Bet;
+        _players[player1Id].nbrStars -= player1Bet;
+        _players[player2Id].nbrStarsLocked -= player2Bet;
+        _players[player2Id].nbrStars += player1Bet;
     }
-
 
     function _payPlayersTheirCollateral() private {
         uint8 nbrPlayers = _nbrPlayers;
-        for(uint8 i; i < nbrPlayers; i++) {
+        for (uint8 i; i < nbrPlayers; i++) {
             _players[i].amountToPay = _players[i].paidAmount;
         }
     }
 
     function _payPlayersTheirRewards() private {
         uint8 nbrPlayers = _nbrPlayers;
-        for(uint8 i; i < nbrPlayers; i++) {
+        for (uint8 i; i < nbrPlayers; i++) {
             _players[i].amountToPay = _players[i].rewards;
         }
     }
 
-    function _computeRewardsForPlayer(int8 nbrCards, uint8 nbrStars) private view returns (uint256 payout) {
-        if(nbrCards < 0) {
+    function _computeRewardsForPlayer(
+        int8 nbrCards,
+        uint8 nbrStars
+    ) private view returns (uint256 payout) {
+        if (nbrCards < 0) {
             return 0;
         }
-        if(nbrCards != 0) { // player still has cards, limit payout to 4
-            if(nbrStars > 4) {
+        if (nbrCards != 0) {
+            // player still has cards, limit payout to 4
+            if (nbrStars > 4) {
                 nbrStars = 4;
+            } else if (nbrCards != 6 && nbrStars > 0) {
+                nbrStars--;
             }
         }
-        uint256 pay = nbrStars * _starCost; 
+        uint256 pay = nbrStars * _starCost;
         payout = (pay * (1000 - _winningsCut)) / 1000;
     }
 
@@ -901,7 +906,9 @@ contract RestrictedRPSGame is ISeedable {
     /*
      * @param _initialHash: The hash of the initial shuffle of the deck
      */
-    function joinGame(string memory pub) external payable returns (uint8 playerId) {
+    function joinGame(
+        string memory pub
+    ) external payable returns (uint8 playerId) {
         address player = msg.sender;
         if (msg.value < getBasicJoiningCost()) {
             revert RestrictedRPS_SendMore();
@@ -934,7 +941,7 @@ contract RestrictedRPSGame is ISeedable {
         _players[playerId] = playerState;
         _nbrPlayers++;
 
-        emit GameJoined(playerId, player, pub);
+        emit GameJoined(playerId, pub);
     }
 
     function getSeed() external view returns (uint256) {
@@ -942,7 +949,7 @@ contract RestrictedRPSGame is ISeedable {
     }
 
     function setSeed(uint256 seed) external onlyFactory {
-        if(_state != GameState.WAITING_FOR_SEED) {
+        if (_state != GameState.WAITING_FOR_SEED) {
             revert RestrictedRPS_NotExpectingSeed();
         }
         _seed = seed;
@@ -953,8 +960,12 @@ contract RestrictedRPSGame is ISeedable {
     function setPlayerHand(
         uint8 playerId,
         bytes memory encryptedHand
-    ) external isValidPlayerId(playerId) onlyDealer {
+    ) external onlyDealer {
+        if (_players[playerId].playerWasGivenCards) {
+            revert RestrictedRPS_PlayerHandAlreadyGiven();
+        }
         _players[playerId].nbrCards = int8(_CARDS_PER_PLAYER);
+        _players[playerId].playerWasGivenCards = true;
         emit PlayerWasGivenHand(_players[playerId].player, encryptedHand);
     }
 
@@ -978,8 +989,7 @@ contract RestrictedRPSGame is ISeedable {
         }
 
         if (
-            (player1Bet + player1State.nbrStarsLocked) >
-            (player1State.nbrStars)
+            (player1Bet + player1State.nbrStarsLocked) > (player1State.nbrStars)
         ) {
             revert RestrictedRPS_NotEnoughAvailableStars();
         }
@@ -998,7 +1008,7 @@ contract RestrictedRPSGame is ISeedable {
         emit MatchCreated(matchId, msg.sender);
     }
 
-    function cancelMatch(uint8 matchId) external isValidMatchId(matchId) {
+    function cancelMatch(uint8 matchId) external /*isValidMatchId(matchId)*/ {
         Match memory m = _matches[matchId];
         uint8 player1Id = m.player1;
         int8 playerId = getPlayerId(msg.sender);
@@ -1018,7 +1028,7 @@ contract RestrictedRPSGame is ISeedable {
     function answerMatch(
         uint8 matchId,
         Card card
-    ) external isValidMatchId(matchId) {
+    ) external /*isValidMatchId(matchId)*/ {
         int8 id = getPlayerId(msg.sender);
         if (id == -1) {
             revert RestrictedRPS_NotAPlayer();
@@ -1050,14 +1060,12 @@ contract RestrictedRPSGame is ISeedable {
         uint8 matchId,
         uint8 card,
         string memory secret
-    ) external isValidMatchId(matchId) {
+    ) external /*isValidMatchId(matchId)*/ {
         Match memory m = _matches[matchId];
         if (m.result != MatchState.ANSWERED) {
             revert RestrictedRPS_MatchNotAnswered();
         }
-        bytes32 cardHash = keccak256(
-            bytes.concat(bytes1(card), bytes(secret))
-        );
+        bytes32 cardHash = keccak256(bytes.concat(bytes1(card), bytes(secret)));
         if (m.player1Hash != cardHash) {
             revert RestrictedRPS_WrongCardHash();
         }
@@ -1072,59 +1080,84 @@ contract RestrictedRPSGame is ISeedable {
         MatchState mstate = MatchState.UNDECIDED;
         if (uint8(player1Card) > 2) {
             // player 1 played invalid card. Player 2 wins
-            _markAsPlayer2Win(matchId, m.player1, m.player2);
-            mstate = MatchState.WIN2;
+            _markAsPlayer2Win(
+                matchId,
+                m.player1,
+                m.player2,
+                m.player1Bet,
+                m.player2Bet
+            );
         }
         if (uint8(player2Card) > 2) {
             // player 2 played invalid card. Player 1 wins
-            _markAsPlayer1Win(matchId, m.player1, m.player2);
-            mstate = MatchState.WIN1;
+            _markAsPlayer1Win(
+                matchId,
+                m.player1,
+                m.player2,
+                m.player1Bet,
+                m.player2Bet
+            );
         }
 
         if (player1Card == player2Card) {
             // Draw
-            _markAsDraw(matchId, m.player1, m.player2);
-            mstate = MatchState.DRAW;
+            _markAsDraw(
+                matchId,
+                m.player1,
+                m.player2,
+                m.player1Bet,
+                m.player2Bet
+            );
         } else if (
             (player1Card == Card.ROCK && player2Card == Card.SCISSORS) ||
             (player1Card == Card.PAPER && player2Card == Card.ROCK) ||
             (player1Card == Card.SCISSORS && player2Card == Card.PAPER)
         ) {
-            _markAsPlayer1Win(matchId, m.player1, m.player2);
-            mstate = MatchState.WIN1;
+            _markAsPlayer1Win(
+                matchId,
+                m.player1,
+                m.player2,
+                m.player1Bet,
+                m.player2Bet
+            );
         } else {
-            _markAsPlayer2Win(matchId, m.player1, m.player2);
-            mstate = MatchState.WIN2;
+            _markAsPlayer2Win(
+                matchId,
+                m.player1,
+                m.player2,
+                m.player1Bet,
+                m.player2Bet
+            );
         }
 
         emit MatchClosed(matchId, uint8(mstate));
     }
 
-
-    function isReadyToVerify() public view returns(bool) {
-        if(_state != GameState.OPEN) {
+    function isReadyToVerify() public view returns (bool) {
+        if (_state != GameState.OPEN) {
             return false;
         }
-        if(_endTimestamp > block.timestamp) {
-            if(_nbrPlayers == 6) {
-                PlayerState[6] memory players = _players ;
-                for(uint8 i; i < 6; i++) {
-                    if(players[i].nbrCards > 0) {
-                        return false; //there is still players with cards
-                    }
+        if (_endTimestamp < block.timestamp) {
+            return true;
+        }
+        if (_nbrPlayers == 6) {
+            PlayerState[6] memory players = _players;
+            for (uint8 i; i < 6; i++) {
+                if (players[i].nbrCards > 0) {
+                    return false; //there is still players with cards
                 }
             }
+            return true;
         }
-        return true;
+        return false;
     }
-
 
     function verifyDealerHonesty(
         bytes9 initialDeck,
         string memory secret
     ) external onlyDealer returns (bool) {
         bool ready = isReadyToVerify();
-        if(!ready) {
+        if (!ready) {
             revert RestrictedRPS_GameNotReadyToVerify();
         }
         bytes32 hashedDeck = keccak256(
@@ -1160,14 +1193,13 @@ contract RestrictedRPSGame is ISeedable {
         return true;
     }
 
-
     function computeRewards() external {
-        if(_state != GameState.DEALER_HONESTY_PROVEN) {
+        if (_state != GameState.DEALER_HONESTY_PROVEN) {
             revert RestrictedRPS_DealerHonestyNotYetProven();
         }
         uint8 nbrPlayers = _nbrPlayers;
         uint8 nbrPlayersWhoCheated;
-        for(uint8 i; i < nbrPlayers; i++) {
+        for (uint8 i; i < nbrPlayers; i++) {
             PlayerState memory playerState = _players[i];
             if (
                 (playerState.nbrCards < 0) ||
@@ -1179,14 +1211,18 @@ contract RestrictedRPSGame is ISeedable {
                 nbrPlayersWhoCheated++;
                 _players[i].cheated = true;
             } else {
-                _players[i].rewards = _computeRewardsForPlayer(playerState.nbrCards, playerState.nbrStars); 
+                _players[i].rewards = _computeRewardsForPlayer(
+                    playerState.nbrCards,
+                    playerState.nbrStars
+                );
             }
         }
-        if(nbrPlayersWhoCheated > 0) { // some players have cheated, give everyone his collateral back
-            for(uint8 i; i < nbrPlayers; i++) {
+        if (nbrPlayersWhoCheated > 0) {
+            // some players have cheated, give everyone his collateral back
+            for (uint8 i; i < nbrPlayers; i++) {
                 PlayerState memory playerState = _players[i];
                 if (!playerState.cheated) {
-                    _players[i].rewards = playerState.paidAmount; 
+                    _players[i].rewards = playerState.paidAmount;
                 }
             }
         }
@@ -1194,43 +1230,51 @@ contract RestrictedRPSGame is ISeedable {
         emit ComputedRewards();
     }
 
-
-    function computeCurrentRewardsForPlayer(uint8 playerId) public view isValidPlayerId(playerId) returns (uint256 payout) {
+    function computeCurrentRewardsForPlayer(
+        uint8 playerId
+    ) public view returns (uint256 payout) {
         PlayerState memory playerState = _players[playerId];
         int8 nbrCards = playerState.nbrCards;
         uint8 nbrStars = playerState.nbrStars;
         payout = _computeRewardsForPlayer(nbrCards, nbrStars);
     }
 
-
     function closeGame() external {
         GameState state = _state;
-        if(state == GameState.DEALER_CHEATED || (state == GameState.OPEN && block.timestamp >= (_endTimestamp + 1 days))) {
+        if (
+            state == GameState.DEALER_CHEATED ||
+            (state == GameState.OPEN &&
+                block.timestamp >= (_endTimestamp + 1 days))
+        ) {
             _payPlayersTheirCollateral();
-            _state = GameState.CLOSED;
+            _state = GameState.READY_TO_PAY;
             emit GameClosed(uint8(state));
-        } else if(_state == GameState.COMPUTED_REWARDS) {
+        } else if (_state == GameState.COMPUTED_REWARDS) {
             _payPlayersTheirRewards();
-            _state = GameState.CLOSED;
+            _state = GameState.READY_TO_PAY;
             emit GameClosed(uint8(state));
         } else {
             revert RestrictedRPS_GameNotClosable();
         }
     }
 
-    function payPlayers() external isClosed {
+    function payPlayers() external {
+        if (_state != GameState.READY_TO_PAY) {
+            revert RestrictedRPS_GameNotReadyToPay();
+        }
         uint8 nbrPlayers = _nbrPlayers;
-        for(uint8 i; i < nbrPlayers; i++) {
+        for (uint8 i; i < nbrPlayers; i++) {
             uint256 amount = _players[i].amountToPay;
             address playerAddress = _players[i].player;
-            if(amount > 0) {
+            if (amount > 0) {
                 _players[i].amountToPay = 0;
                 payable(playerAddress).transfer(amount);
             }
         }
+        _state = GameState.CLOSED;
     }
 
-    function withdraw() external isClosed onlyFactory() {
+    function withdraw() external isClosed onlyFactory {
         payable(address(_factory)).transfer(address(this).balance);
     }
 }

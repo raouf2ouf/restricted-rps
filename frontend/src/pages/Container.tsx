@@ -27,21 +27,21 @@ const Container: React.FC = () => {
         className={leftMenuOpen ? "big " : "small "}
       >
         <LeftMenu />
-        <div className="ion-page" id="main">
+        <div id="main">
           <IonSplitPane
             id="right-split-pane"
             contentId="second"
             when={true}
             className={rightMenuOpen ? "big" : "small"}
           >
-            <div className="ion-page" id="second">
+            <div id="second">
               <DataFetchers />
               <Tabs
-                home={<HomePage />}
-                play={<PlayPage />}
-                matches={<MatchesPage />}
-                offers={<OffersPage />}
-                history={<HistoryPage />}
+              // home={<HomePage />}
+              // play={<PlayPage />}
+              // matches={<MatchesPage />}
+              // offers={<OffersPage />}
+              // history={<HistoryPage />}
               />
             </div>
             <RightMenu />

@@ -7,7 +7,8 @@ remappings = [
     "@api3/contracts=lib/airnode/packages/airnode-protocol/contracts",
     '@openzeppelin/contracts-v4=lib/openzeppelin-contracts-v4/contracts',
 ]
-solc_version = "0.8.19"
+# solc_version = "0.8.19"
+solc_version = "0.8.24"
 optimizer = true
 optimizer-runs = 200
 

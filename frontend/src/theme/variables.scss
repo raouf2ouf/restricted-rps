@@ -166,3 +166,8 @@ ion-alert {
   border: 1px solid var(--ion-color-primary);
   font-size: 12px;
 }
+
+ion-content::part(scroll) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ion-background-color-light) transparent;
+}

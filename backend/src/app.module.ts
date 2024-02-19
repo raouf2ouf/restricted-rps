@@ -16,8 +16,9 @@ import { Match } from './entities/match.entity';
       entities: [Game, History, Match],
     }),
     ServeStaticModule.forRoot({
+      // serveRoot: '/',
       rootPath: join(__dirname, '..', 'www'),
-      exclude: ['/api*'],
+      exclude: ['/api/(.*)'],
     }),
     ScheduleModule.forRoot(),
     GamesModule,

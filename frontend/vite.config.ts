@@ -29,9 +29,20 @@ const vitestConfig: VitestUserConfig = {
 // https://vitejs.dev/config/
 export default defineConfig({
   test: vitestConfig.test,
+  build: {
+    outDir: "./www",
+    target: "es2020",
+    chunkSizeWarningLimit: 3024,
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: "es2020",
+    },
+  },
+
   plugins: [
     react(),
-    legacy(),
+    // legacy({ targets: "es2020" }),
     tsconfigPaths(),
     nodePolyfills({
       globals: {
