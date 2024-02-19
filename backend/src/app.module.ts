@@ -17,7 +17,7 @@ import { Match } from './entities/match.entity';
     }),
     ServeStaticModule.forRoot({
       // serveRoot: '/',
-      rootPath: join(__dirname, '..', 'www'),
+      rootPath: join(__dirname, '../..', 'www'),
       exclude: ['/api/(.*)'],
     }),
     ScheduleModule.forRoot(),
